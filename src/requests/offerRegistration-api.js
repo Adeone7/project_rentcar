@@ -4,7 +4,7 @@ const defaultHeader = {
   "Content-Type": "application/json",
 };
 
-/*자동차 정보 등록*/
+/* 자동차 정보 등록 */
 function createCar({
   corporation,
   car_type,
@@ -30,6 +30,7 @@ function createCar({
   });
 }
 
+/* 렌트 매물 등록(간단한 정보) */
 function createRentalOffer({
   car_idx,
   rental_price,
@@ -38,32 +39,28 @@ function createRentalOffer({
 }) {
   const formData = new FormData();
 
-  formData.append("car_idx", car_idx);
-
+  formData.append("car_idx", String(car_idx));
   formData.append("rental_price", String(rental_price));
   formData.append("description", description ?? "");
 
-  // 이미지 여러 장
   images.forEach((file) => {
     formData.append("img", file);
   });
 
   return fetch(server + "", {
     method: "POST",
-    body: formData, // FormData는 headers 지정하면 안 됨!
-  }).then((response) => {
+    body: formData,
+  }).then(async (response) => {
     if (!response.ok) throw new Error("렌트 매물 등록 실패");
-    // 백엔드가 응답 바디 없으면 return null 처리
-    return response
-      .text()
-      .then((t) => (t ? JSON.parse(t) : null))
-      .catch(() => null);
+
+    const text = await response.text().catch(() => "");
+    return text ? JSON.parse(text) : null;
   });
 }
 
-/*매물 리스트*/
+/* 매물 리스트 */
 function getRentalOffers() {
-  return fetch(server + "/rental-offer", {
+  return fetch(server + "/rental_offer", {
     method: "GET",
   }).then((response) => {
     if (!response.ok) throw new Error("매물 조회 실패");

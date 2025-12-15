@@ -2,9 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useAccount, useToken } from "../stores/account-store";
 
-import { getRentalOffers } from "../requests/offerRegistration-api";
-
-export default function HomePage() {
+export default function SearchRegistration() {
   const navigate = useNavigate();
 
   const [startDate, setStartDate] = useState("");
