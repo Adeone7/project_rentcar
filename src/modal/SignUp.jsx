@@ -1,5 +1,9 @@
 import { useRef, useState } from "react";
-import { createAccount, verifyEmailCode } from "../requests/account-api";
+import {
+  createAccount,
+  verifyEmailCode,
+  availableCheck,
+} from "../requests/account-api";
 import { useNavigate } from "react-router";
 
 export default function SignUpModal({ setModal }) {
@@ -10,6 +14,7 @@ export default function SignUpModal({ setModal }) {
   const [codeError, setCodeError] = useState("");
 
   const [step, setStep] = useState(1);
+  const [account, setAccount] = useState(null);
   const formRef = useRef();
 
   function submitHandle(evt) {
@@ -22,6 +27,7 @@ export default function SignUpModal({ setModal }) {
     createAccount(nickname, id, pw).then((obj) => {
       window.alert(obj.success);
       formRef.current.reset();
+      setAccount(obj.account);
       setStep(2);
     });
   }
@@ -35,7 +41,7 @@ export default function SignUpModal({ setModal }) {
 
   function emailBlurHandle(evt) {
     const id = evt.target.value;
-    verifyEmailCode(id).then((obj) => {
+    availableCheck(id).then((obj) => {
       if (!id) return setEmailError("이메일을 입력해주세요");
       if (obj.available) setEmailError("");
       else setEmailError("이미 사용 중인 이메일주소입니다.");
@@ -127,7 +133,7 @@ export default function SignUpModal({ setModal }) {
               e.preventDefault();
               const code = e.target.code.value;
 
-              verifyEmailCode(code).then((result) => {
+              verifyEmailCode(account.id, code).then((result) => {
                 if (result.success) {
                   setCodeError("");
                   setStep(3);

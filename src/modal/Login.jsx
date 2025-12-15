@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { loginAccount } from "../requests/account-api";
 import { useAccount, useToken } from "../stores/account-store";
 
-export default function LoginModal({ setModal }) {
+export default function LoginModal({ setModal, setIsLogin }) {
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState(false);
 
@@ -27,6 +27,7 @@ export default function LoginModal({ setModal }) {
       if (res.success) {
         setAccount(res.user);
         setToken(res.token);
+        setIsLogin(true);
         setModal(null);
       } else {
         setLoginError(true);

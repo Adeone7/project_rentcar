@@ -16,12 +16,21 @@ function createAccount(nickname, id, pw) {
   });
 }
 
+//email 검증
+function availableCheck(id) {
+  return fetch(server + "/verify-email" + email, {
+    method: "get",
+  }).then((response) => {
+    response.json();
+  });
+}
+
 // 인증 코드 검증
-function verifyEmailCode(code) {
+function verifyEmailCode(accountId, code) {
   return fetch(server + "/verify-email", {
     method: "POST",
     headers: defaultHeader,
-    body: JSON.stringify({ code }),
+    body: JSON.stringify({ accountId, code }),
   }).then((res) => {
     if (!res.ok) throw new Error("이메일 인증 실패");
     return res.json();
@@ -40,4 +49,4 @@ function loginAccount(id, pw) {
   });
 }
 
-export { createAccount, verifyEmailCode, loginAccount };
+export { createAccount, verifyEmailCode, loginAccount, availableCheck };
