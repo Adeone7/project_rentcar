@@ -36,3 +36,13 @@ export const useToken = create(
     { name: "token" }
   )
 );
+
+export const useOfferStore = create(
+  persist(
+    (set) => ({
+      offers: [],
+      setOffers: (offers) => set({ offers: [] }),
+    }),
+    { name: "offer-store" }
+  )
+);

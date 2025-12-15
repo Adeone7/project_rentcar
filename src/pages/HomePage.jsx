@@ -1,10 +1,11 @@
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useAccount, useToken } from "../stores/account-store";
 
 import logo from "../assets/TOCAR.png";
 import LoginModal from "../modal/Login";
 import SignUpModal from "../modal/SignUp";
+import OfferRegistration from "./OfferRegistration";
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -138,17 +139,9 @@ export default function HomePage() {
           </div>
 
           {/* 콘텐츠 */}
-          {active === "전체" && (
-            <p className="text-sm text-stone-600">전체 내용</p>
-          )}
-          {active === "예약하기" && (
-            <p className="text-sm text-stone-600">
-              예약하기 (로그인 여부와 무관)
-            </p>
-          )}
-          {active === "차량등록" && (
-            <p className="text-sm text-stone-600">차량등록 폼</p>
-          )}
+          {active === "신규 차량" && <p>전체 내용</p>}
+          {active === "예약하기" && <p>예약하기</p>}
+          {active === "차량등록" && <OfferRegistration />}
         </div>
       </div>
 

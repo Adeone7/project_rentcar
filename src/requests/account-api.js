@@ -10,9 +10,9 @@ function createAccount(nickname, id, pw) {
     method: "POST",
     headers: defaultHeader,
     body: JSON.stringify({ nickname, id, pw }),
-  }).then((res) => {
-    if (!res.ok) throw new Error("회원가입 실패");
-    return res.json();
+  }).then((response) => {
+    if (!response.ok) throw new Error("회원가입 실패");
+    return response.json();
   });
 }
 
@@ -31,9 +31,9 @@ function verifyEmailCode(accountId, code) {
     method: "POST",
     headers: defaultHeader,
     body: JSON.stringify({ accountId, code }),
-  }).then((res) => {
-    if (!res.ok) throw new Error("이메일 인증 실패");
-    return res.json();
+  }).then((response) => {
+    if (!response.ok) throw new Error("이메일 인증 실패");
+    return response.json();
   });
 }
 
@@ -43,9 +43,9 @@ function loginAccount(id, pw) {
     method: "POST",
     headers: defaultHeader,
     body: JSON.stringify({ id, pw }),
-  }).then((res) => {
-    if (!res.ok) throw new Error("로그인 실패");
-    return res.json();
+  }).then((response) => {
+    if (!response.ok) throw new Error("로그인 실패");
+    return response.json();
   });
 }
 
