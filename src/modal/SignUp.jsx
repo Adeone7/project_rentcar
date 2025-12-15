@@ -19,7 +19,7 @@ export default function SignUpModal({ setModal }) {
     const password = formRef.current.password.value;
     const nickname = formRef.current.nickname.value;
 
-    createAccount(email, password, nickname).then((obj) => {
+    createAccount(nickname, email, password).then((obj) => {
       window.alert(obj.success);
       formRef.current.reset();
       setStep(2);

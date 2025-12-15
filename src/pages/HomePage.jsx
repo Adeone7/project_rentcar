@@ -1,11 +1,6 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
-import { loginAccount } from "../requests/account-api";
-import {
-  createAccount,
-  verifyEmailCode,
-  loginAccount,
-} from "../requests/account-api";
+
 import logo from "../assets/TOCAR.png";
 import LoginModal from "../modal/Login";
 import SignUpModal from "../modal/SignUp";
@@ -17,6 +12,7 @@ export default function HomePage() {
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [latest, setLatest] = useState(false);
 
   return (
     <div>

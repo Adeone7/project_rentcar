@@ -1,6 +1,5 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
-import { loginAccount } from "../requests/account-api";
 import { loginAccount, createAccount } from "../requests/account-api";
 import logo from "../assets/TOCAR.png";
 import LoginModal from "../modal/Login";
