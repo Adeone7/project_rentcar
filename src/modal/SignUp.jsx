@@ -15,11 +15,11 @@ export default function SignUpModal({ setModal }) {
   function submitHandle(evt) {
     evt.preventDefault();
 
-    const email = formRef.current.email.value;
-    const password = formRef.current.password.value;
+    const id = formRef.current.id.value;
+    const pw = formRef.current.pw.value;
     const nickname = formRef.current.nickname.value;
 
-    createAccount(nickname, email, password).then((obj) => {
+    createAccount(nickname, id, pw).then((obj) => {
       window.alert(obj.success);
       formRef.current.reset();
       setStep(2);
@@ -34,19 +34,19 @@ export default function SignUpModal({ setModal }) {
   }
 
   function emailBlurHandle(evt) {
-    const email = evt.target.value;
-    verifyEmailCode(email).then((obj) => {
-      if (!email) return setEmailError("이메일을 입력해주세요");
+    const id = evt.target.value;
+    verifyEmailCode(id).then((obj) => {
+      if (!id) return setEmailError("이메일을 입력해주세요");
       if (obj.available) setEmailError("");
       else setEmailError("이미 사용 중인 이메일주소입니다.");
     });
   }
 
   function passwordBlurHandle(evt) {
-    const password = evt.target.value;
-    if (!password) return setPasswordError("비밀번호를 입력해주세요");
-    if (password.length < 6)
-      return setPasswordError("비밀번호를 6자 이상 입력해주세요.");
+    const pw = evt.target.value;
+    if (!pw) return setPasswordError("비밀번호를 입력해주세요");
+    if (pw.length < 8)
+      return setPasswordError("비밀번호를 8자 이상 입력해주세요.");
     setPasswordError("");
   }
 
@@ -81,7 +81,7 @@ export default function SignUpModal({ setModal }) {
               </label>
               <input
                 type="email"
-                name="email"
+                name="id"
                 placeholder="Email@example.com"
                 className="border border-stone-400 w-full mt-1 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#a8dce1]"
                 onBlur={emailBlurHandle}
@@ -97,7 +97,7 @@ export default function SignUpModal({ setModal }) {
               </label>
               <input
                 type="password"
-                name="password"
+                name="pw"
                 placeholder="비밀번호"
                 className="border border-stone-400 w-full mt-1 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#a8dce1]"
                 onBlur={passwordBlurHandle}

@@ -1,25 +1,37 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { loginAccount } from "../requests/account-api";
-// import { useAccount, useToken } from "../stores/account-store";
+import { useAccount, useToken } from "../stores/account-store";
 
 export default function LoginModal({ setModal }) {
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState(false);
-  const formRef = useRef();
 
-  //   const { setAccount } = useAccount();
-  //   const { setToken } = useToken();
+  const formRef = useRef(null);
+  const idRef = useRef(null);
+
+  const { setAccount } = useAccount();
+  const { setToken } = useToken();
 
   useEffect(() => {
-    formRef.current.email.focus();
+    idRef.current?.focus();
   }, []);
 
   function submitHandle(evt) {
     evt.preventDefault();
 
-    const email = formRef.current.email.value;
-    const password = formRef.current.password.value;
+    const id = formRef.current.id.value;
+    const pw = formRef.current.pw.value;
+
+    loginAccount(id, pw).then((res) => {
+      if (res.success) {
+        setAccount(res.user);
+        setToken(res.token);
+        setModal(null);
+      } else {
+        setLoginError(true);
+      }
+    });
   }
 
   return (
@@ -33,8 +45,9 @@ export default function LoginModal({ setModal }) {
         <div>
           <label className="block">이메일</label>
           <input
+            ref={idRef}
             type="email"
-            name="email"
+            name="id"
             placeholder="Email@example.com"
             className="border border-stone-400 w-full mt-1 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#a8dce1]"
           />
@@ -44,7 +57,7 @@ export default function LoginModal({ setModal }) {
           <label className="block">비밀번호</label>
           <input
             type="password"
-            name="password"
+            name="pw"
             placeholder="비밀번호"
             className="border border-stone-400 w-full mt-1 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#a8dce1]"
           />
@@ -67,7 +80,7 @@ export default function LoginModal({ setModal }) {
       <div className="w-full text-center text-sm mt-4 text-gray-600">
         <span>계정이 없으신가요? </span>
         <span
-          className="text-[#7ccdd5] hover:underline"
+          className="text-[#7ccdd5] hover:underline cursor-pointer"
           onClick={() => setModal("SignUp")}
         >
           회원가입

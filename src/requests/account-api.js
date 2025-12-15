@@ -5,11 +5,11 @@ const defaultHeader = {
 };
 
 // 신규 계정 만들기
-function createAccount(nickname, email, password) {
+function createAccount(nickname, id, pw) {
   return fetch(server + "/signup", {
     method: "POST",
     headers: defaultHeader,
-    body: JSON.stringify({ nickname, email, password }),
+    body: JSON.stringify({ nickname, id, pw }),
   }).then((res) => {
     if (!res.ok) throw new Error("회원가입 실패");
     return res.json();
@@ -29,11 +29,11 @@ function verifyEmailCode(code) {
 }
 
 // 로그인
-function loginAccount(email, password) {
+function loginAccount(id, pw) {
   return fetch(server + "/login", {
     method: "POST",
     headers: defaultHeader,
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ id, pw }),
   }).then((res) => {
     if (!res.ok) throw new Error("로그인 실패");
     return res.json();
