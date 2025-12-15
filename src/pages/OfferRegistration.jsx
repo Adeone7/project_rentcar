@@ -16,6 +16,7 @@ export default function OfferRegistration() {
         {/* 상단고정 부분 */}
         <div className="sticky top-0 w-full z-10 bg-white border-b border-stone-200">
           <div className="absolute left-1/2 transform -translate-x-1/2 top-16 w-[1560px] h-[300px] bg-cyan-600 -z-10" />
+
           <div className="w-full max-w-[1000px] mx-auto flex justify-between items-center p-2">
             <img
               src={logo}
@@ -42,6 +43,7 @@ export default function OfferRegistration() {
             </div>
           </div>
         </div>
+
         <div className="w-full max-w-[1032px] h-full mt-[200px] mx-auto bg-white rounded-lg shadow-sm p-6 relative z-20"></div>
       </div>
       {/* Modal 영역 */}

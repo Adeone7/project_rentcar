@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { loginAccount } from "../requests/account-api";
-import { availableCheck, createAccount } from "../requests/account-api";
+import { createAccount, verifyEmailCode } from "../requests/account-api";
 import logo from "../assets/TOCAR.png";
 import LoginModal from "../modal/Login";
 import SignUpModal from "../modal/SignUp";
@@ -10,6 +10,9 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [modal, setModal] = useState("");
   const [active, setActive] = useState("전체");
+
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   return (
     <div>
@@ -65,6 +68,51 @@ export default function HomePage() {
                 </button>
               ))}
             </nav>
+          </div>
+
+          {/* 날짜 검색 기능 바 */}
+          <div className="flex justify-center">
+            <form className="flex items-center gap-1.5 rounded-md bg-stone-100 px-3 py-1.5 text-sm">
+              <button
+                type="button"
+                className="h-8 rounded-md px-2 text-stone-600 hover:bg-stone-200"
+              ></button>
+
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setLatest(false);
+                }}
+                className="h-8 rounded-md border border-stone-300 bg-white px-2 text-stone-700 focus:outline-none focus:ring-1 focus:ring-stone-400"
+              />
+
+              <span className="px-1 text-stone-500">▶</span>
+
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setLatest(false);
+                }}
+                className="h-8 rounded-md border border-stone-300 bg-white px-2 text-stone-700 focus:outline-none focus:ring-1 focus:ring-stone-400"
+              />
+
+              <button
+                type="button"
+                className="h-8 rounded-md px-2 text-stone-600 hover:bg-stone-200"
+              ></button>
+
+              <button
+                type="button"
+                onClick={() => setLatest(false)}
+                className="ml-1 h-8 rounded-md bg-stone-700 px-3 text-white hover:bg-stone-800"
+              >
+                검색
+              </button>
+            </form>
           </div>
 
           {/* 탭 콘텐츠 영역 */}

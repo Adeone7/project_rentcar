@@ -3,8 +3,8 @@ const server = "http://192.168.0.92:8080";
 const defaultheader = { "Content-type": "application.json" };
 
 //신규 계정 만들기 (api호출)
-function createAccount(email, password, nickname) {
-  const data = { email, password, nickname };
+function createAccount(nickname, email, password) {
+  const data = { nickname, email, password };
 
   return fetch(server + "/signup", {
     method: "post",
@@ -13,16 +13,9 @@ function createAccount(email, password, nickname) {
   }).then((response) => response.json());
 }
 
-//이메일 검증 api
-function availableCheck(email) {
-  return fetch(server + "/verify-email" + email, {
-    method: "get",
-  }).then((response) => response.json());
-}
-
 // 이메일 api 요청
 export function verifyEmailCode(code) {
-  return fetch("/api/verify-email-code", {
+  return fetch(server + "/verify-email", {
     method: "post",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code }),
@@ -42,4 +35,4 @@ function loginAccount(email, password) {
   }).then((response) => response.json());
 }
 
-export { createAccount, availableCheck, loginAccount };
+export { createAccount, verifyEmailCode, loginAccount };
