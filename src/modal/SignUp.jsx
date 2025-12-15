@@ -1,9 +1,5 @@
 import { useRef, useState } from "react";
-import {
-  availableCheck,
-  createAccount,
-  verifyEmailCode,
-} from "../requests/account-api";
+import { createAccount, verifyEmailCode } from "../requests/account-api";
 import { useNavigate } from "react-router";
 
 export default function SignUpModal({ setModal }) {
