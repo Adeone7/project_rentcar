@@ -1,4 +1,4 @@
-const server = "http://192.168.0.92:8080";
+const server = "http://192.168.0.14:8080";
 
 const defaultHeader = {
   "Content-Type": "application/json",
@@ -67,8 +67,8 @@ function getRentalOffers() {
 }
 
 /* 자동차 예약하기  */
-function bookRentalOffer({ offerId, accountId, startDate, endDate }) {
-  return fetch(server + `/rental-offer/:${offerId}/book`, {
+function bookRentalOffer({ idx, accountId, startDate, endDate }) {
+  return fetch(`${server}/home/offer/${idx}/book`, {
     method: "POST",
     headers: defaultHeader,
     body: JSON.stringify({
