@@ -7,7 +7,7 @@ import { RouterProvider } from "react-router/dom";
 import HomePage from "./pages/HomePage";
 import Login from "./modal/Login";
 import SignUp from "./modal/SignUp";
-import OfferList from "./pages/OfferList";
+
 import OfferBook from "./pages/OfferBook";
 import OfferRegistration from "./pages/OfferRegistration";
 import OfferChart from "./pages/OfferChart";
@@ -32,7 +32,7 @@ const router = createBrowserRouter([
       },
       {
         path: "search-registration-results",
-        element: <SearchRegistrationResults />, //예약 검색 달력
+        element: <SearchRegistrationResults />, //예약 날짜 검색 결과
       },
       {
         path: "/home/offer/registration",
@@ -48,8 +48,8 @@ const router = createBrowserRouter([
         element: <MyBookState />, //나의 예약 현황, 마이페이지
       },
       {
-        path: "/home/offer/:offerId/book",
-        element: <OfferBook />, // 렌트카 선택 후 예약하는 페이지
+        path: "/home/offer/book",
+        element: <OfferBook />, //렌트카 예약 상세 페이지
       },
     ],
   },
@@ -63,12 +63,6 @@ const router = createBrowserRouter([
     path: "/home/signup",
     element: <SignUp />, //회원가입 페이지
   },
-
-  {
-    path: "/home/offer/results",
-    element: <OfferList />, //렌트카 리스트 검색결과
-  },
-
   {
     path: "/home/offer/chart",
     element: <OfferChart />, //렌트카 이용 차트

@@ -67,8 +67,8 @@ function getRentalOffers() {
 }
 
 /* 자동차 예약하기  */
-function bookRentalOffer({ offerId, accountId, startDate, endDate }) {
-  return fetch(server + `/rental-offer/:${offerId}/book`, {
+function bookRentalOffer({ idx, accountId, startDate, endDate }) {
+  return fetch(`${server}/home/offer/${idx}/book`, {
     method: "POST",
     headers: defaultHeader,
     body: JSON.stringify({

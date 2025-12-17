@@ -207,9 +207,7 @@ export default function SearchRegistrationResults() {
           <div>
             <div className="text-sm font-bold text-stone-900">검색 결과</div>
             <div className="mt-1 text-xs text-stone-500">
-              {loading
-                ? "불러오는 중..."
-                : `총 ${Number(total).toLocaleString()}건`}
+              {loading ? "" : `총 ${Number(total).toLocaleString()}건`}
             </div>
           </div>
 
