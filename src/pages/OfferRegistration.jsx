@@ -4,6 +4,7 @@ import {
   createRentalOffer,
 } from "../requests/offerRegistration-api";
 
+
 export default function OfferRegistration() {
   const [step, setStep] = useState(1);
   const [images, setImages] = useState([]);
