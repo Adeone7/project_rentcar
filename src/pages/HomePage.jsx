@@ -8,7 +8,7 @@ export default function HomePage() {
   useEffect(() => {
     getRentalOffers().then((json) => {
       console.log(json);
-      setOffers(json.rentalOfferListResponse ?? []);
+      setOffers(json.rentalOfferResponseList ?? []);
       setTotal(json.countAllRentalOffer ?? 0);
     });
   }, []);

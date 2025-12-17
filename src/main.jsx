@@ -13,7 +13,7 @@ import OfferRegistration from "./pages/OfferRegistration";
 import OfferChart from "./pages/OfferChart";
 import MyBookState from "./pages/MyBookState";
 import DefaultLayout from "./layout/DefaultLayout";
-import SearchRegistration from "./pages/SearchRegistration";
+
 import DefaultLayout2 from "./layout/DefaultLayout2";
 
 const router = createBrowserRouter([
@@ -25,8 +25,8 @@ const router = createBrowserRouter([
         element: <HomePage />, //메인 홈페이지
       },
       {
-        path: "/home/offer/search",
-        element: <SearchRegistration />, //예약 검색
+        path: "/home/offer/Calendar",
+        element: <Calendar />, //예약 검색
       },
       {
         path: "/home/offer/registration",
