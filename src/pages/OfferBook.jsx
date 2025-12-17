@@ -4,8 +4,10 @@ import { bookRentalOffer } from "../requests/offerRegistration-api";
 import { useNavigate } from "react-router";
 import LoginModal from "../modal/Login";
 
-function pickOfferId(idx) {
-  return idx?.idx ?? idx?.id ?? idx?.offerId ?? idx?.rentalOfferIdx ?? null;
+function pickOfferId(offer) {
+  return (
+    offer?.idx ?? offer?.id ?? offer?.offerId ?? offer?.rentalOfferIdx ?? null
+  );
 }
 function pickAccountId(account) {
   return account?.idx ?? account?.id ?? account?.accountId ?? null;
@@ -26,7 +28,7 @@ export default function OfferBook({ offer, onBack }) {
   const [modal, setModal] = useState(null);
   const [isLogin, setIsLogin] = useState(false);
 
-  const idx = useMemo(() => String(pickOfferId(idx) ?? ""), [idx]);
+  const offerId = useMemo(() => String(pickOfferId(offer) ?? ""), [offer]);
 
   useEffect(() => {
     if (!token) setModal("Login");
@@ -35,26 +37,29 @@ export default function OfferBook({ offer, onBack }) {
 
   const title = useMemo(() => {
     return (
-      idx?.modelName ??
-      idx?.car?.model_name ??
-      idx?.car?.modelName ??
+      offer?.modelName ??
+      offer?.car?.model_name ??
+      offer?.car?.modelName ??
       "차량 상세"
     );
-  }, [idx]);
+  }, [offer]);
 
   const year = useMemo(() => {
-    return idx?.modelYear ?? idx?.car?.model_year ?? idx?.car?.modelYear;
-  }, [idx]);
+    return offer?.modelYear ?? offer?.car?.model_year ?? offer?.car?.modelYear;
+  }, [offer]);
+
   const price = useMemo(() => {
-    const v = idx?.rentalPrice ?? idx?.price;
+    const v = offer?.rentalPrice ?? offer?.price;
     if (typeof v === "number") return v.toLocaleString();
     if (typeof v === "string") return v;
     return "0";
-  }, [idx]);
+  }, [offer]);
 
   const heroImg = useMemo(() => {
-    return idx?.images?.[0]?.img ?? idx?.images?.[0] ?? idx?.img?.[0] ?? null;
-  }, [idx]);
+    return (
+      offer?.images?.[0]?.img ?? offer?.images?.[0] ?? offer?.img?.[0] ?? null
+    );
+  }, [offer]);
 
   const onBook = async () => {
     setBookingErr("");
@@ -64,7 +69,7 @@ export default function OfferBook({ offer, onBack }) {
       setModal("Login");
       return;
     }
-    if (!idx) {
+    if (!offerId) {
       setBookingErr("매물 ID가 없습니다.");
       return;
     }
@@ -81,7 +86,7 @@ export default function OfferBook({ offer, onBack }) {
 
     setBookingLoading(true);
     try {
-      await bookRentalOffer({ idx, accountId, startDate, endDate });
+      await bookRentalOffer({ offerId, accountId, startDate, endDate });
       setBookingOk("예약이 완료되었습니다.");
     } catch (e) {
       setBookingErr("예약 요청에 실패했습니다.");
@@ -109,6 +114,20 @@ export default function OfferBook({ offer, onBack }) {
         </div>
       </div>
     );
+  }
+
+  function goResult(nextRange) {
+    onSearch?.(nextRange);
+
+    navigate(resultPath, {
+      state: {
+        range: nextRange,
+        startDate: nextRange?.startDate,
+        endDate: nextRange?.endDate,
+      },
+    });
+
+    setOpen(false);
   }
 
   return (
@@ -140,12 +159,11 @@ export default function OfferBook({ offer, onBack }) {
           {/* 좌측: 차량 상세 */}
           <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
             <div className="relative h-64 bg-stone-100">
-              {o.images?.[0] ? (
+              {heroImg ? (
                 <img
-                  src={"http://192.168.0.14:8080" + o.images[0]}
-                  className="h-full w-full object-contain p-3"
-                  loading="lazy"
-                  alt={o?.modelName ?? "car"}
+                  src={heroImg}
+                  alt={title}
+                  className="h-full w-full object-contain p-4"
                 />
               ) : (
                 <div className="flex h-full items-center justify-center text-sm text-stone-400">
