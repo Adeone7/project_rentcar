@@ -1,16 +1,21 @@
 import { useEffect, useState } from "react";
 import { getRentalOffers } from "../requests/offerRegistration-api";
+import Loading from "../modal/Loading";
 
 export default function HomePage() {
   const [offers, setOffers] = useState([]);
   const [total, setTotal] = useState(0);
-
+  const [showLoading, setShowLoading] = useState(false);
   useEffect(() => {
+    setShowLoading(true);
     getRentalOffers().then((json) => {
       console.log(json);
-      setOffers(json.rentalOfferResponseList ?? []);
+      setOffers(json.rentalOfferListResponse ?? []);
       setTotal(json.countAllRentalOffer ?? 0);
     });
+    setTimeout(function () {
+      setShowLoading(false);
+    }, 1000);
   }, []);
 
   return (
@@ -75,7 +80,7 @@ export default function HomePage() {
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <div className="grid h-8 w-8 place-items-center rounded-full bg-stone-100 text-xs font-bold text-stone-600">
-                      {(o?.nickName ?? "게").slice(0, 1)}
+                      {(o?.nickName ?? []).slice(0, 1)}
                     </div>
                     <div className="text-sm font-semibold text-stone-700">
                       {o?.nickName ? `${o.nickName}님` : "판매자 정보 없음"}
@@ -107,6 +112,7 @@ export default function HomePage() {
           ))}
         </div>
       </div>
+      {showLoading && <Loading />}
     </div>
   );
 }

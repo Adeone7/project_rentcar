@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import { DateRangePicker } from "react-date-range";
 import {
   defaultStaticRanges,
@@ -49,7 +50,13 @@ function endOfMonth(d) {
   return x;
 }
 
-export default function DateOnlyRangePicker({ onChange, onSearch }) {
+export default function DateOnlyRangePicker({
+  onChange,
+  onSearch,
+
+  resultPath = "/search-registration-results",
+}) {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
   const today0 = useMemo(() => atStartOfDay(new Date()), []);
@@ -131,6 +138,20 @@ export default function DateOnlyRangePicker({ onChange, onSearch }) {
     return { startDate: start, endDate: end, key: "selection" };
   }
 
+  function goResult(nextRange) {
+    onSearch?.(nextRange);
+
+    navigate(resultPath, {
+      state: {
+        range: nextRange,
+        startDate: nextRange?.startDate,
+        endDate: nextRange?.endDate,
+      },
+    });
+
+    setOpen(false);
+  }
+
   return (
     <div className="w-full max-w-[980px] rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
       <div className="mb-3 flex items-end justify-between gap-3">
@@ -183,7 +204,6 @@ export default function DateOnlyRangePicker({ onChange, onSearch }) {
 
       {open && (
         <div className="mt-3 overflow-hidden rounded-2xl border border-stone-200">
-          {/* ✅ 달력 + 왼쪽 프리셋 + 오른쪽(달력) 레이아웃 */}
           <div className="relative">
             <DateRangePicker
               ranges={ranges}
@@ -212,7 +232,7 @@ export default function DateOnlyRangePicker({ onChange, onSearch }) {
                   <button
                     type="button"
                     className="w-full rounded-xl bg-sky-500 px-4 py-2 text-xs font-bold text-white hover:bg-sky-600"
-                    onClick={() => onSearch?.(range)}
+                    onClick={() => goResult(range)}
                   >
                     차량 검색
                   </button>

@@ -13,8 +13,10 @@ import OfferRegistration from "./pages/OfferRegistration";
 import OfferChart from "./pages/OfferChart";
 import MyBookState from "./pages/MyBookState";
 import DefaultLayout from "./layout/DefaultLayout";
-
+import SearchRegistration from "./pages/SearchRegistration";
 import DefaultLayout2 from "./layout/DefaultLayout2";
+import SearchRegistrationResults from "./pages/SearchRegistrationResults";
+import LoadingPage from "./pages/LoadingPage";
 
 const router = createBrowserRouter([
   {
@@ -25,8 +27,12 @@ const router = createBrowserRouter([
         element: <HomePage />, //메인 홈페이지
       },
       {
-        path: "/home/offer/Calendar",
-        element: <Calendar />, //예약 검색
+        path: "/home/offer/search",
+        element: <SearchRegistration />, //예약 검색 달력
+      },
+      {
+        path: "search-registration-results",
+        element: <SearchRegistrationResults />, //예약 검색 달력
       },
       {
         path: "/home/offer/registration",
@@ -46,6 +52,11 @@ const router = createBrowserRouter([
         element: <OfferBook />, // 렌트카 선택 후 예약하는 페이지
       },
     ],
+  },
+
+  {
+    path: "/loading",
+    element: <LoadingPage />, //회원가입 페이지
   },
 
   {
