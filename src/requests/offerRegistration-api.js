@@ -13,7 +13,7 @@ function createCar({
   few_seats,
   gear_type,
 }) {
-  return fetch(server + "", {
+  return fetch(server + "/car", {
     method: "POST",
     headers: defaultHeader,
     body: JSON.stringify({
@@ -30,42 +30,56 @@ function createCar({
   });
 }
 
-/* 렌트 매물 등록(간단한 정보) */
 function createRentalOffer({
-  car_idx,
-  rental_price,
+  carIdx,
+  rentalPrice,
   description,
+  accountId,
   images = [],
 }) {
   const formData = new FormData();
 
-  formData.append("car_idx", String(car_idx));
-  formData.append("rental_price", String(rental_price));
+  formData.append("carIdx", String(carIdx));
+  formData.append("rentalPrice", String(rentalPrice));
   formData.append("description", description ?? "");
+  formData.append("accountId", String(accountId));
 
   images.forEach((file) => {
     formData.append("img", file);
   });
 
-  return fetch(server + "", {
+  return fetch(server + "/rental-offer", {
     method: "POST",
     body: formData,
-  }).then(async (response) => {
-    if (!response.ok) throw new Error("렌트 매물 등록 실패");
-
-    const text = await response.text().catch(() => "");
-    return text ? JSON.parse(text) : null;
-  });
-}
-
-/* 매물 리스트 */
-function getRentalOffers() {
-  return fetch(server + "/rental_offer", {
-    method: "GET",
   }).then((response) => {
-    if (!response.ok) throw new Error("매물 조회 실패");
+    if (!response.ok) throw new Error("렌트 매물 등록 실패");
     return response.json();
   });
 }
 
-export { createCar, createRentalOffer, getRentalOffers };
+function getRentalOffers() {
+  return fetch(server + "/rental-offer", {
+    method: "GET",
+  }).then((res) => {
+    if (!res.ok) throw new Error("매물 조회 실패");
+    return res.json();
+  });
+}
+
+/* 자동차 예약하기  */
+function bookRentalOffer({ offerId, accountId, startDate, endDate }) {
+  return fetch(server + `/rental-offer/:${offerId}/book`, {
+    method: "POST",
+    headers: defaultHeader,
+    body: JSON.stringify({
+      accountId,
+      startDate,
+      endDate,
+    }),
+  }).then((response) => {
+    if (!response.ok) throw new Error("예약 정보를 불러오는데 실패했습니다.");
+    return response.json();
+  });
+}
+
+export { createCar, createRentalOffer, getRentalOffers, bookRentalOffer };

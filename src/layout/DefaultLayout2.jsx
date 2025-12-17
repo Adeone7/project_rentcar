@@ -6,7 +6,7 @@ import logo from "../assets/TOCAR.png";
 import LoginModal from "../modal/Login";
 import SignUpModal from "../modal/SignUp";
 
-export default function DefaultLayout() {
+export default function DefaultLayout2() {
   const navigate = useNavigate();
 
   const [modal, setModal] = useState("");
@@ -100,43 +100,6 @@ export default function DefaultLayout() {
 
         {/* ================= 메인 박스 ================= */}
         <div className="w-full max-w-[1032px] mt-[200px] mx-auto bg-white rounded-lg shadow-sm p-6 z-20">
-          {/* 탭 */}
-          <nav className="flex gap-9 border-b border-stone-200 pb-3 mb-6">
-            <button
-              onClick={() => navigate("/home")}
-              className={
-                "text-sm font-medium pb-1 transition " +
-                (active === "전체"
-                  ? "text-cyan-600 border-b-2 border-cyan-600"
-                  : "text-stone-600 hover:text-stone-800")
-              }
-            >
-              전체
-            </button>
-            <button
-              onClick={() => navigate("/home/offer/search")}
-              className={
-                "text-sm font-medium pb-1 transition " +
-                (active === "예약하기"
-                  ? "text-cyan-600 border-b-2 border-cyan-600"
-                  : "text-stone-600 hover:text-stone-800")
-              }
-            >
-              예약하기
-            </button>
-            <button
-              onClick={() => navigate("/home/offer/registration")}
-              className={
-                "text-sm font-medium pb-1 transition " +
-                (active === "차량등록"
-                  ? "text-cyan-600 border-b-2 border-cyan-600"
-                  : "text-stone-600 hover:text-stone-800")
-              }
-            >
-              차량등록
-            </button>
-          </nav>
-
           <Outlet />
         </div>
       </div>

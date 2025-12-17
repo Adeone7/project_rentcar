@@ -14,6 +14,7 @@ import OfferChart from "./pages/OfferChart";
 import MyBookState from "./pages/MyBookState";
 import DefaultLayout from "./layout/DefaultLayout";
 import SearchRegistration from "./pages/SearchRegistration";
+import DefaultLayout2 from "./layout/DefaultLayout2";
 
 const router = createBrowserRouter([
   {
@@ -33,6 +34,19 @@ const router = createBrowserRouter([
       },
     ],
   },
+  {
+    element: <DefaultLayout2 />,
+    children: [
+      {
+        path: "/home/my/bookstate",
+        element: <MyBookState />, //나의 예약 현황, 마이페이지
+      },
+      {
+        path: "/home/offer/:offerId/book",
+        element: <OfferBook />, // 렌트카 선택 후 예약하는 페이지
+      },
+    ],
+  },
 
   {
     path: "/home/signup",
@@ -43,10 +57,6 @@ const router = createBrowserRouter([
     path: "/home/offer/results",
     element: <OfferList />, //렌트카 리스트 검색결과
   },
-  {
-    path: "/home/offer/:offerId/book",
-    element: <OfferBook />, // 렌트카 예약하기
-  },
 
   {
     path: "/home/offer/chart",
@@ -54,7 +64,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/home/my/bookstate",
-    element: <MyBookState />, //나의 예약 현황
+    element: <MyBookState />, //나의 예약 현황, 마이페이지
   },
 ]);
 createRoot(document.getElementById("root")).render(
