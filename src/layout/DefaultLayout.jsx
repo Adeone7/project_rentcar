@@ -12,9 +12,6 @@ export default function DefaultLayout() {
   const [modal, setModal] = useState("");
   const [active, setActive] = useState("전체");
 
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-
   /* 로그인/로그인유지 */
 
   const { account, setAccount, clearAccount } = useAccount();
@@ -66,7 +63,10 @@ export default function DefaultLayout() {
             <div className="flex items-center gap-3">
               {/* 닉네임 표시 */}
               {isLogin && (
-                <span className="text-sm text-stone-700 font-medium">
+                <span
+                  className="text-sm text-stone-700 font-medium hover:underline cursor-pointer"
+                  onClick={() => navigate("/home/my/bookstate")}
+                >
                   {account?.nickname}
                 </span>
               )}

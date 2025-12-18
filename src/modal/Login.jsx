@@ -25,9 +25,9 @@ export default function LoginModal({ setModal, setIsLogin }) {
 
     loginAccount(id, pw).then((res) => {
       if (res.success) {
-        setAccount(res.user);
-        setToken(res.token);
-        setIsLogin(true);
+        setAccount(res.account);
+        setToken(res.auth);
+
         setModal(null);
       } else {
         setLoginError(true);
@@ -65,7 +65,7 @@ export default function LoginModal({ setModal, setIsLogin }) {
         </div>
 
         {loginError && (
-          <p className="text-red-500 text-xs">
+          <p className="text-rose-500 text-xs">
             이메일 또는 비밀번호가 일치하지 않습니다.
           </p>
         )}
