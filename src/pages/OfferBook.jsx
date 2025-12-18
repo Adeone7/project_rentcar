@@ -267,7 +267,7 @@ export default function OfferBook({ offer, onBack }) {
 
       {modal === "Login" && (
         <div
-          className="fixed inset-0 z-[9999] grid place-items-center bg-black/40 px-4"
+          className="fixed inset-0 z-9999 grid place-items-center bg-black/40 px-4"
           onClick={() => setModal(null)}
         >
           <LoginModal setModal={setModal} setIsLogin={setIsLogin} />
