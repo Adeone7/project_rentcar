@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 
-import Lottie from "lottie-react";
+// import Lottie from "lottie-react";
 
-import car_gif from "../assets/lottie/carr.gif";
+// import car_gif from "../assets/lottie/carr.gif";
 import carr_mov from "../assets/lottie/Car.webm";
 import { useNavigate } from "react-router";
 
