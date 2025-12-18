@@ -135,8 +135,8 @@ function getReservations(token) {
 }
 
 /* 예약 취소 */
-function cancelReservation({ rental_offer_idx, token }) {
-  return fetch(`${server}/reservation/${rental_offer_idx}`, {
+function cancelReservation({ reservationIdx, token }) {
+  return fetch(`${server}/reservation/${reservationIdx}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   }).then((res) => {

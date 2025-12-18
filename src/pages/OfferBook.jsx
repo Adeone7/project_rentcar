@@ -76,9 +76,6 @@ export default function OfferBook() {
       await bookRentalOffer(token, payload);
 
       setBookingOk("예약이 완료되었습니다.");
-
-      // 원하면 여기서 바로 예약현황으로 이동도 가능
-      // navigate("/home/offer/book/state");
     } catch (e) {
       setBookingErr("예약 요청에 실패했습니다.");
     } finally {
@@ -88,15 +85,15 @@ export default function OfferBook() {
 
   if (!offer) {
     return (
-      <div className="min-h-screen bg-stone-50">
-        <div className="mx-auto max-w-[900px] px-6 py-10">
-          <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+      <div className="min-h-screen bg-linear-to-b from-stone-50 via-white to-cyan-50/40">
+        <div className="mx-auto max-w-[900px] px-5 py-10 sm:px-6">
+          <div className="rounded-3xl border border-stone-200/70 bg-white/80 p-6 shadow-[0_20px_60px_-35px_rgba(0,0,0,0.25)] backdrop-blur">
             <div className="text-sm font-extrabold text-stone-900">
               차량 정보를 찾을 수 없습니다.
             </div>
             <button
               type="button"
-              className="mt-4 rounded-2xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-cyan-800"
+              className="mt-5 inline-flex items-center justify-center rounded-2xl bg-cyan-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-sm transition hover:-translate-y-[1px] hover:bg-cyan-700 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 active:translate-y-0"
               onClick={() => navigate(-1)}
             >
               돌아가기
@@ -107,120 +104,221 @@ export default function OfferBook() {
     );
   }
 
+  const _rawModelYear = offer?.model_year ?? offer?.modelYear;
+  const _year =
+    _rawModelYear != null && _rawModelYear !== ""
+      ? String(_rawModelYear).slice(0, 4)
+      : "";
+
   return (
-    <div className="min-h-screen bg-stone-50">
-      <div className="mx-auto max-w-[1100px] px-6 py-10">
-        <div className="mb-6 flex items-end justify-between gap-3">
+    <div className="min-h-screen bg-linear-to-b from-stone-50 via-white to-cyan-50/40">
+      <div className="mx-auto max-w-[1100px] px-5 py-10 sm:px-6">
+        <div className="mb-7 flex items-end justify-between gap-3">
           <div>
-            <div className="text-xs font-semibold text-cyan-700">BOOKING</div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/60 bg-white/70 px-3 py-1 text-[11px] font-extrabold tracking-wide text-cyan-700 shadow-sm backdrop-blur">
+              BOOKING
+              <span className="h-1.5 w-1.5 rounded-full bg-cyan-600" />
+            </div>
           </div>
 
           <button
             type="button"
-            className="rounded-2xl border border-stone-200 bg-white px-4 py-2 text-sm font-bold text-stone-700 shadow-sm hover:bg-stone-50"
+            className="inline-flex items-center justify-center rounded-2xl border border-stone-200/80 bg-white/80 px-4 py-2 text-sm font-extrabold text-stone-700 shadow-sm backdrop-blur transition hover:-translate-y-[1px] hover:bg-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 active:translate-y-0"
             onClick={() => navigate("/home")}
           >
             뒤로가기
           </button>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.2fr,0.8fr]">
-          <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
-            <div className="relative h-64 bg-stone-100">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.2fr,0.8fr]">
+          <div className="overflow-hidden rounded-3xl border border-stone-200/70 bg-white/80 shadow-[0_24px_70px_-45px_rgba(0,0,0,0.35)] backdrop-blur">
+            <div className="relative h-64 bg-linear-to-br from-stone-100 via-white to-cyan-50">
               {offerImages?.[0] ? (
                 <img
                   src={"http://192.168.0.14:8080" + offerImages[0].img}
-                  className="h-full w-full object-contain p-4"
+                  className="h-full w-full object-contain p-6"
                   alt=""
                 />
               ) : (
-                <div className="flex h-full items-center justify-center text-sm text-stone-400">
+                <div className="flex h-full items-center justify-center text-sm font-semibold text-stone-400">
                   이미지 없음
                 </div>
               )}
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-linear-to-t from-black/10 to-transparent" />
             </div>
 
-            <div className="p-5">
-              <div className="flex items-start justify-between gap-3">
+            <div className="p-6">
+              <div className="flex items-start justify-between gap-4">
                 <div>
-                  <div className="text-lg font-extrabold text-stone-900">
+                  <div className="text-xl font-black tracking-tight text-stone-900">
                     {offer?.modelName ?? "모델명 없음"}
                   </div>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <span className="inline-flex items-center rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-xs font-semibold text-stone-600">
-                      {offer?.model_year
-                        ? `${offer.model_year}년식`
-                        : offer?.modelYear
-                        ? `${offer.modelYear}년식`
-                        : "연식 정보 없음"}
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <span className="inline-flex items-center rounded-full border border-stone-200/70 bg-white/80 px-2.5 py-1 text-xs font-bold text-stone-700 shadow-sm">
+                      {_year ? `${_year}년식` : "연식 정보 없음"}
+                    </span>
+
+                    <span className="inline-flex items-center rounded-full border border-stone-200/70 bg-white/80 px-2.5 py-1 text-xs font-bold text-stone-700 shadow-sm">
+                      {offer?.corporation ?? "제조사 정보 없음"}
+                    </span>
+
+                    <span className="inline-flex items-center rounded-full border border-stone-200/70 bg-white/80 px-2.5 py-1 text-xs font-bold text-stone-700 shadow-sm">
+                      {offer?.carType ?? "차종 정보 없음"}
+                    </span>
+
+                    <span className="inline-flex items-center rounded-full border border-stone-200/70 bg-white/80 px-2.5 py-1 text-xs font-bold text-stone-700 shadow-sm">
+                      {offer?.fewSeats != null && offer?.fewSeats !== ""
+                        ? `${offer.fewSeats}인승`
+                        : "인승 정보 없음"}
+                    </span>
+
+                    <span className="inline-flex items-center rounded-full border border-stone-200/70 bg-white/80 px-2.5 py-1 text-xs font-bold text-stone-700 shadow-sm">
+                      {offer?.gearType ?? "변속기 정보 없음"}
+                    </span>
+
+                    <span className="inline-flex items-center rounded-full border border-stone-200/70 bg-white/80 px-2.5 py-1 text-xs font-bold text-stone-700 shadow-sm">
+                      {offer?.nickname ?? "닉네임 정보 없음"}
                     </span>
                   </div>
                 </div>
 
                 <div className="shrink-0 text-right">
-                  <div className="text-[11px] font-semibold text-stone-500">
+                  <div className="text-[11px] font-bold text-stone-500">
                     대여료
                   </div>
-                  <div className="mt-1 inline-flex items-baseline gap-1 rounded-xl bg-sky-500 px-3 py-1.5 text-white">
-                    <span className="text-sm font-extrabold">
+                  <div className="mt-1 inline-flex items-baseline gap-1 rounded-2xl bg-linear-to-r from-cyan-600 to-sky-500 px-3.5 py-2 text-white shadow-md shadow-cyan-300/20">
+                    <span className="text-sm font-black">
                       {Number(offer?.rentalPrice ?? 0).toLocaleString()}
                     </span>
-                    <span className="text-[11px] font-semibold opacity-90">
-                      원
-                    </span>
+                    <span className="text-[11px] font-bold opacity-90">원</span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 rounded-2xl bg-stone-50 p-4">
-                <div className="text-xs font-bold text-stone-700">설명</div>
-                <div className="mt-2 text-sm text-stone-700 leading-relaxed">
+              <div className="mt-5">
+                <div className="mb-2 inline-flex items-center gap-2 text-xs font-black text-stone-800">
+                  <span className="h-2 w-2 rounded-full bg-cyan-600" />
+                  정보
+                </div>
+
+                <div className="relative overflow-hidden rounded-2xl bg-[linear-gradient(transparent_31px,rgba(0,0,0,0.03)_32px)] bg-size-[100%_32px] px-4 py-3">
+                  <div className="pointer-events-none absolute left-3 top-0 h-full w-0.5 bg-rose-300/40" />
+
+                  <div className="grid grid-cols-1 gap-y-2 text-[13px] leading-6 text-stone-800 sm:grid-cols-2 sm:gap-x-6">
+                    <div className="flex items-baseline gap-2">
+                      <span className="min-w-[92px] text-[11px] font-black text-stone-500">
+                        nickname
+                      </span>
+                      <span className="font-extrabold text-stone-900">
+                        {offer?.nickname ?? "—"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline gap-2">
+                      <span className="min-w-[92px] text-[11px] font-black text-stone-500">
+                        corporation
+                      </span>
+                      <span className="font-extrabold text-stone-900">
+                        {offer?.corporation ?? "—"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline gap-2">
+                      <span className="min-w-[92px] text-[11px] font-black text-stone-500">
+                        carType
+                      </span>
+                      <span className="font-extrabold text-stone-900">
+                        {offer?.carType ?? "—"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline gap-2">
+                      <span className="min-w-[92px] text-[11px] font-black text-stone-500">
+                        modelYear
+                      </span>
+                      <span className="font-extrabold text-stone-900">
+                        {_rawModelYear ?? "—"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline gap-2">
+                      <span className="min-w-[92px] text-[11px] font-black text-stone-500">
+                        fewSeats
+                      </span>
+                      <span className="font-extrabold text-stone-900">
+                        {offer?.fewSeats ?? "—"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline gap-2">
+                      <span className="min-w-[92px] text-[11px] font-black text-stone-500">
+                        gearType
+                      </span>
+                      <span className="font-extrabold text-stone-900">
+                        {offer?.gearType ?? "—"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline gap-2 sm:col-span-2">
+                      <span className="min-w-[92px] text-[11px] font-black text-stone-500">
+                        rentalPrice
+                      </span>
+                      <span className="font-extrabold text-stone-900">
+                        {Number(offer?.rentalPrice ?? 0).toLocaleString()}원
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 rounded-3xl border border-stone-200/60 bg-stone-50/70 p-5">
+                <div className="text-xs font-black text-stone-800">설명</div>
+                <div className="mt-3 text-sm leading-relaxed text-stone-700">
                   {offer?.description ?? "설명이 없습니다."}
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-            <div className="text-sm font-extrabold text-stone-900">
-              예약 정보
-            </div>
+          <div className="rounded-3xl border border-stone-200/70 bg-white/80 p-6 shadow-[0_24px_70px_-45px_rgba(0,0,0,0.35)] backdrop-blur">
+            <div className="text-sm font-black text-stone-900">예약 정보</div>
             <div className="mt-1 text-xs font-semibold text-stone-500">
               날짜 선택 후 예약을 진행하세요.
             </div>
 
-            <div className="mt-4 space-y-3">
+            <div className="mt-5 space-y-4">
               <label className="block">
-                <div className="text-xs font-bold text-stone-700">
+                <div className="text-xs font-black text-stone-800">
                   대여 시작일
                 </div>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-cyan-600"
+                  className="mt-2 w-full rounded-2xl border border-stone-200/80 bg-stone-50/60 px-3.5 py-2.5 text-sm font-semibold text-stone-900 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-2 focus:ring-cyan-500/20"
                 />
               </label>
 
               <label className="block">
-                <div className="text-xs font-bold text-stone-700">
+                <div className="text-xs font-black text-stone-800">
                   대여 종료일
                 </div>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-cyan-600"
+                  className="mt-2 w-full rounded-2xl border border-stone-200/80 bg-stone-50/60 px-3.5 py-2.5 text-sm font-semibold text-stone-900 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-2 focus:ring-cyan-500/20"
                 />
               </label>
 
               {bookingErr && (
-                <div className="rounded-2xl bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+                <div className="rounded-2xl border border-rose-200/70 bg-rose-50/70 px-3.5 py-2.5 text-xs font-bold text-rose-700">
                   {bookingErr}
                 </div>
               )}
               {bookingOk && (
-                <div className="rounded-2xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
+                <div className="rounded-2xl border border-emerald-200/70 bg-emerald-50/70 px-3.5 py-2.5 text-xs font-bold text-emerald-700">
                   {bookingOk}
                 </div>
               )}
@@ -228,10 +326,15 @@ export default function OfferBook() {
               <button
                 type="button"
                 onClick={onBook}
-                className="mt-2 w-full rounded-2xl bg-cyan-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-sm transition hover:bg-cyan-800 disabled:opacity-60"
+                disabled={bookingLoading}
+                className="mt-2 inline-flex w-full items-center justify-center rounded-2xl bg-linear-to-r from-cyan-600 to-sky-500 px-4 py-3 text-sm font-black text-white shadow-md shadow-cyan-500/20 transition hover:-translate-y-[1px] hover:shadow-lg hover:shadow-cyan-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                예약하기
+                {bookingLoading ? "예약 처리중..." : "예약하기"}
               </button>
+
+              <div className="pt-1 text-[11px] font-semibold text-stone-500">
+                예약 완료 후 마이페이지에서 내역을 확인할 수 있어요.
+              </div>
             </div>
           </div>
         </div>
@@ -239,10 +342,13 @@ export default function OfferBook() {
 
       {modal === "Login" && (
         <div
-          className="fixed inset-0 z-[9999] grid place-items-center bg-black/40 px-4"
+          className="fixed inset-0 z-9999 grid place-items-center bg-black/40 px-4 backdrop-blur-[2px]"
           onClick={() => setModal(null)}
         >
-          <div onClick={(e) => e.stopPropagation()}>
+          <div
+            className="w-full max-w-[520px] rounded-3xl border border-white/20 bg-white/80 p-2 shadow-[0_40px_120px_-60px_rgba(0,0,0,0.55)] backdrop-blur"
+            onClick={(e) => e.stopPropagation()}
+          >
             <LoginModal setModal={setModal} setIsLogin={setIsLogin} />
           </div>
         </div>

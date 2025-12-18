@@ -17,7 +17,6 @@ import SearchRegistration from "./pages/SearchRegistration";
 import DefaultLayout2 from "./layout/DefaultLayout2";
 import SearchRegistrationResults from "./pages/SearchRegistrationResults";
 import LoadingPage from "./pages/LoadingPage";
-import OfferComeplete from "./pages/OfferComplete";
 
 const router = createBrowserRouter([
   {
@@ -51,10 +50,6 @@ const router = createBrowserRouter([
       {
         path: "/home/offer/book/:offerId",
         element: <OfferBook />, //렌트카 예약 상세 페이지
-      },
-      {
-        path: "/home/offer/book/",
-        element: <OfferComeplete />, //렌트카 예약 성공 또는 실패
       },
     ],
   },
