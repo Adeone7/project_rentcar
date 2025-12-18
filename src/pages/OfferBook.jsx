@@ -1,19 +1,18 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccount, useToken } from "../stores/account-store";
-import { bookRentalOffer } from "../requests/offerRegistration-api";
-import { useNavigate } from "react-router";
+import {
+  bookRentalOffer,
+  getRentalOfferByOfferId,
+} from "../requests/offerRegistration-api";
+import { useNavigate, useParams } from "react-router";
 import LoginModal from "../modal/Login";
 
-function pickOfferId(offer) {
-  return (
-    offer?.idx ?? offer?.id ?? offer?.offerId ?? offer?.rentalOfferIdx ?? null
-  );
-}
-function pickAccountId(account) {
-  return account?.idx ?? account?.id ?? account?.accountId ?? null;
-}
+export default function OfferBook() {
+  const { offerId } = useParams();
+  const [offer, setOffer] = useState(null);
+  const [offerImages, setOfferImages] = useState([]);
+  const [offerReviews, setOfferReviews] = useState([]);
 
-export default function OfferBook({ offer, onBack }) {
   const { token } = useToken();
   const { account } = useAccount();
   const navigate = useNavigate();
@@ -28,38 +27,16 @@ export default function OfferBook({ offer, onBack }) {
   const [modal, setModal] = useState(null);
   const [isLogin, setIsLogin] = useState(false);
 
-  const offerId = useMemo(() => String(pickOfferId(offer) ?? ""), [offer]);
-
   useEffect(() => {
-    if (!token) setModal("Login");
-    else setModal(null);
-  }, [token]);
-
-  const title = useMemo(() => {
-    return (
-      offer?.modelName ??
-      offer?.car?.model_name ??
-      offer?.car?.modelName ??
-      "차량 상세"
-    );
-  }, [offer]);
-
-  const year = useMemo(() => {
-    return offer?.modelYear ?? offer?.car?.model_year ?? offer?.car?.modelYear;
-  }, [offer]);
-
-  const price = useMemo(() => {
-    const v = offer?.rentalPrice ?? offer?.price;
-    if (typeof v === "number") return v.toLocaleString();
-    if (typeof v === "string") return v;
-    return "0";
-  }, [offer]);
-
-  const heroImg = useMemo(() => {
-    return (
-      offer?.images?.[0]?.img ?? offer?.images?.[0] ?? offer?.img?.[0] ?? null
-    );
-  }, [offer]);
+    console.log(!!token, !!account, !!offerId);
+    if (token && account && offerId) {
+      getRentalOfferByOfferId(token, offerId).then((json) => {
+        setOffer(json.rentalOfferAddReview);
+        setOfferImages(json.rentalOfferCarImg ?? []);
+        setOfferReviews(json.rentalOfferReview ?? []);
+      });
+    }
+  }, [token, account, offerId]);
 
   const onBook = async () => {
     setBookingErr("");
@@ -77,8 +54,12 @@ export default function OfferBook({ offer, onBack }) {
       setBookingErr("대여 시작일/종료일을 선택해주세요.");
       return;
     }
+    if (startDate > endDate) {
+      setBookingErr("종료일은 시작일보다 빠를 수 없습니다.");
+      return;
+    }
 
-    const accountId = pickAccountId(account);
+    const accountId = account.id;
     if (!accountId) {
       setBookingErr("로그인 정보(accountId)를 찾을 수 없습니다.");
       return;
@@ -86,8 +67,18 @@ export default function OfferBook({ offer, onBack }) {
 
     setBookingLoading(true);
     try {
-      await bookRentalOffer({ offerId, accountId, startDate, endDate });
+      const payload = {
+        rentalOfferIdx: offerId,
+        startDate,
+        endDate,
+      };
+
+      await bookRentalOffer(token, payload);
+
       setBookingOk("예약이 완료되었습니다.");
+
+      // 원하면 여기서 바로 예약현황으로 이동도 가능
+      // navigate("/home/offer/book/state");
     } catch (e) {
       setBookingErr("예약 요청에 실패했습니다.");
     } finally {
@@ -106,7 +97,7 @@ export default function OfferBook({ offer, onBack }) {
             <button
               type="button"
               className="mt-4 rounded-2xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-cyan-800"
-              onClick={() => onBack?.()}
+              onClick={() => navigate(-1)}
             >
               돌아가기
             </button>
@@ -116,54 +107,31 @@ export default function OfferBook({ offer, onBack }) {
     );
   }
 
-  function goResult(nextRange) {
-    onSearch?.(nextRange);
-
-    navigate(resultPath, {
-      state: {
-        range: nextRange,
-        startDate: nextRange?.startDate,
-        endDate: nextRange?.endDate,
-      },
-    });
-
-    setOpen(false);
-  }
-
   return (
     <div className="min-h-screen bg-stone-50">
       <div className="mx-auto max-w-[1100px] px-6 py-10">
-        {/* 상단 */}
         <div className="mb-6 flex items-end justify-between gap-3">
           <div>
             <div className="text-xs font-semibold text-cyan-700">BOOKING</div>
-            <div className="mt-1 text-2xl font-extrabold tracking-tight text-stone-900">
-              {title}
-            </div>
-            <div className="mt-2 text-xs font-semibold text-stone-500">
-              {offerId ? `매물번호: ${offerId}` : ""}
-            </div>
           </div>
 
           <button
             type="button"
             className="rounded-2xl border border-stone-200 bg-white px-4 py-2 text-sm font-bold text-stone-700 shadow-sm hover:bg-stone-50"
-            onClick={() => onBack?.()}
+            onClick={() => navigate("/home")}
           >
             뒤로가기
           </button>
         </div>
 
-        {/* 본문 카드 */}
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.2fr,0.8fr]">
-          {/* 좌측: 차량 상세 */}
           <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
             <div className="relative h-64 bg-stone-100">
-              {heroImg ? (
+              {offerImages?.[0] ? (
                 <img
-                  src={heroImg}
-                  alt={title}
+                  src={"http://192.168.0.14:8080" + offerImages[0].img}
                   className="h-full w-full object-contain p-4"
+                  alt=""
                 />
               ) : (
                 <div className="flex h-full items-center justify-center text-sm text-stone-400">
@@ -176,11 +144,15 @@ export default function OfferBook({ offer, onBack }) {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="text-lg font-extrabold text-stone-900">
-                    {title}
+                    {offer?.modelName ?? "모델명 없음"}
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <span className="inline-flex items-center rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-xs font-semibold text-stone-600">
-                      {year ? `${year}년식` : "연식 정보 없음"}
+                      {offer?.model_year
+                        ? `${offer.model_year}년식`
+                        : offer?.modelYear
+                        ? `${offer.modelYear}년식`
+                        : "연식 정보 없음"}
                     </span>
                   </div>
                 </div>
@@ -190,7 +162,9 @@ export default function OfferBook({ offer, onBack }) {
                     대여료
                   </div>
                   <div className="mt-1 inline-flex items-baseline gap-1 rounded-xl bg-sky-500 px-3 py-1.5 text-white">
-                    <span className="text-sm font-extrabold">{price}</span>
+                    <span className="text-sm font-extrabold">
+                      {Number(offer?.rentalPrice ?? 0).toLocaleString()}
+                    </span>
                     <span className="text-[11px] font-semibold opacity-90">
                       원
                     </span>
@@ -207,7 +181,6 @@ export default function OfferBook({ offer, onBack }) {
             </div>
           </div>
 
-          {/* 우측: 예약 폼 */}
           <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <div className="text-sm font-extrabold text-stone-900">
               예약 정보
@@ -254,11 +227,10 @@ export default function OfferBook({ offer, onBack }) {
 
               <button
                 type="button"
-                disabled={bookingLoading}
                 onClick={onBook}
                 className="mt-2 w-full rounded-2xl bg-cyan-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-sm transition hover:bg-cyan-800 disabled:opacity-60"
               >
-                {bookingLoading ? "예약 처리중..." : "예약하기"}
+                예약하기
               </button>
             </div>
           </div>
@@ -270,7 +242,9 @@ export default function OfferBook({ offer, onBack }) {
           className="fixed inset-0 z-9999 grid place-items-center bg-black/40 px-4"
           onClick={() => setModal(null)}
         >
-          <LoginModal setModal={setModal} setIsLogin={setIsLogin} />
+          <div onClick={(e) => e.stopPropagation()}>
+            <LoginModal setModal={setModal} setIsLogin={setIsLogin} />
+          </div>
         </div>
       )}
     </div>

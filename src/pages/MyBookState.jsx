@@ -1,5 +1,7 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useToken } from "../stores/account-store";
+import LoginModal from "../modal/Login";
 
 function StatusPill({ label, tone = "cyan" }) {
   const map = {
@@ -52,87 +54,114 @@ function Stat({ label, value }) {
 
 export default function MyBookState() {
   const navigate = useNavigate();
+  const { token } = useToken();
 
-  // UI 껍데기용 상태(검색/탭만 동작)
   const [q, setQ] = useState("");
   const [tab, setTab] = useState("전체");
+  const [modal, setModal] = useState("");
 
-  // 더미 데이터(나중에 API로 바꿔 끼우면 됨)
-  const current = useMemo(
-    () => ({
-      id: 101,
-      carName: "KIA K5 (2022)",
-      carNo: "12가 3456",
-      pickup: "서울역 3번 출구",
-      startAt: "2025.12.20 10:00",
-      endAt: "2025.12.22 10:00",
-      days: 2,
-      price: "189,000원",
-      statusLabel: "예약중",
-      statusTone: "cyan",
-    }),
-    []
+  const current = {
+    id: 101,
+    carName: "KIA K5 (2022)",
+    carNo: "12가 3456",
+    pickup: "서울역 3번 출구",
+    startAt: "2025.12.20 10:00",
+    endAt: "2025.12.22 10:00",
+    days: 2,
+    price: "189,000원",
+    statusLabel: "예약중",
+    statusTone: "cyan",
+  };
+
+  const historyAll = [
+    {
+      id: 99,
+      carName: "Hyundai Avante (2021)",
+      pickup: "강남역 11번 출구",
+      period: "2025.12.01 09:00 → 2025.12.02 09:00 · 1일",
+      price: "79,000원",
+      type: "이용완료",
+      statusLabel: "이용완료",
+      statusTone: "stone",
+    },
+    {
+      id: 88,
+      carName: "Tesla Model 3 (2023)",
+      pickup: "인천공항 T1",
+      period: "2025.11.01 09:00 → 2025.11.03 09:00 · 2일",
+      price: "320,000원",
+      type: "취소",
+      statusLabel: "취소됨",
+      statusTone: "rose",
+    },
+    {
+      id: 77,
+      carName: "KIA Sorento (2020)",
+      pickup: "잠실역 2번 출구",
+      period: "2025.10.12 10:00 → 2025.10.14 10:00 · 2일",
+      price: "210,000원",
+      type: "이용완료",
+      statusLabel: "이용완료",
+      statusTone: "stone",
+    },
+  ];
+
+  const stats = {
+    total: historyAll.length + 1,
+    reserved: 1,
+    canceled: historyAll.filter((x) => x.type === "취소").length,
+    completed: historyAll.filter((x) => x.type === "이용완료").length,
+  };
+
+  const keyword = q.trim().toLowerCase();
+  const history = historyAll
+    .filter((x) => (tab === "전체" ? true : x.type === tab))
+    .filter((x) => {
+      if (!keyword) return true;
+      return `${x.id} ${x.carName} ${x.pickup}`.toLowerCase().includes(keyword);
+    });
+
+  const modalUI = modal && (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-stone-900/30 px-4"
+      onClick={() => setModal("")}
+    >
+      <div
+        className="w-full max-w-[520px]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {modal === "Login" && <LoginModal setModal={setModal} />}
+      </div>
+    </div>
   );
 
-  const historyAll = useMemo(
-    () => [
-      {
-        id: 99,
-        carName: "Hyundai Avante (2021)",
-        pickup: "강남역 11번 출구",
-        period: "2025.12.01 09:00 → 2025.12.02 09:00 · 1일",
-        price: "79,000원",
-        type: "이용완료",
-        statusLabel: "이용완료",
-        statusTone: "stone",
-      },
-      {
-        id: 88,
-        carName: "Tesla Model 3 (2023)",
-        pickup: "인천공항 T1",
-        period: "2025.11.01 09:00 → 2025.11.03 09:00 · 2일",
-        price: "320,000원",
-        type: "취소",
-        statusLabel: "취소됨",
-        statusTone: "rose",
-      },
-      {
-        id: 77,
-        carName: "KIA Sorento (2020)",
-        pickup: "잠실역 2번 출구",
-        period: "2025.10.12 10:00 → 2025.10.14 10:00 · 2일",
-        price: "210,000원",
-        type: "이용완료",
-        statusLabel: "이용완료",
-        statusTone: "stone",
-      },
-    ],
-    []
-  );
+  if (!token) {
+    return (
+      <div className="min-h-[calc(100vh-140px)] grid place-items-center bg-white">
+        <div className="w-full max-w-[420px] rounded-2xl border border-stone-200 bg-white p-6 text-center shadow-sm">
+          <div className="text-sm font-extrabold text-stone-900">
+            로그인이 필요합니다
+          </div>
+          <div className="mt-2 text-xs text-stone-500">
+            내 예약을 확인하려면 로그인해주세요.
+          </div>
+          <button
+            className="mt-5 w-full rounded-xl bg-cyan-600 px-4 py-3 text-sm font-bold text-white hover:bg-cyan-700"
+            onClick={() => setModal("Login")}
+          >
+            로그인하기
+          </button>
+        </div>
 
-  const stats = useMemo(() => {
-    const total = historyAll.length + 1;
-    const reserved = 1;
-    const canceled = historyAll.filter((x) => x.type === "취소").length;
-    const completed = historyAll.filter((x) => x.type === "이용완료").length;
-    return { total, reserved, canceled, completed };
-  }, [historyAll]);
-
-  const history = useMemo(() => {
-    const keyword = q.trim().toLowerCase();
-    return historyAll
-      .filter((x) => (tab === "전체" ? true : x.type === tab))
-      .filter((x) => {
-        if (!keyword) return true;
-        return `${x.id} ${x.carName} ${x.pickup}`
-          .toLowerCase()
-          .includes(keyword);
-      });
-  }, [historyAll, tab, q]);
+        {modalUI}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
-      {/* 헤더 */}
+      {modalUI}
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="text-[11px] font-semibold text-cyan-700">
@@ -147,7 +176,6 @@ export default function MyBookState() {
         </div>
 
         <div className="w-full sm:w-[420px] space-y-2">
-          {/* 탭 */}
           <div className="flex gap-2">
             {["전체", "예약중", "취소", "이용완료"].map((t) => (
               <button
@@ -163,10 +191,18 @@ export default function MyBookState() {
               </button>
             ))}
           </div>
+
+          <div className="relative">
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="차량명/픽업지 검색"
+              className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-2.5 text-sm outline-none ring-0 placeholder:text-stone-400 focus:border-cyan-300"
+            />
+          </div>
         </div>
       </div>
 
-      {/* 요약 */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="전체" value={stats.total} />
         <Stat label="예약중" value={stats.reserved} />
@@ -174,7 +210,6 @@ export default function MyBookState() {
         <Stat label="이용완료" value={stats.completed} />
       </div>
 
-      {/* 현재 예약(히어로 카드) */}
       <div className="rounded-2xl border border-stone-200 bg-white p-4 sm:p-5">
         <div className="flex items-end justify-between gap-3">
           <div>
@@ -190,7 +225,6 @@ export default function MyBookState() {
 
         <div className="mt-4 rounded-2xl border border-cyan-100 bg-cyan-50/40 p-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
-            {/* 이미지 */}
             <div className="sm:w-[280px]">
               <div className="aspect-16/10 w-full overflow-hidden rounded-2xl bg-stone-100">
                 <div className="h-full w-full bg-linear-to-br from-stone-100 to-stone-200" />
@@ -204,7 +238,6 @@ export default function MyBookState() {
               </div>
             </div>
 
-            {/* 정보 */}
             <div className="flex-1">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
@@ -263,7 +296,7 @@ export default function MyBookState() {
           </div>
         </div>
       </div>
-      {/* 히스토리 */}
+
       <div className="rounded-2xl border border-stone-200 bg-white p-3 sm:p-4">
         <div className="flex items-end justify-between gap-3">
           <div>
@@ -281,12 +314,10 @@ export default function MyBookState() {
               className="rounded-2xl border border-stone-200 bg-white px-3 py-2 hover:bg-stone-50/60 transition"
             >
               <div className="flex gap-3">
-                {/* 썸네일  */}
                 <div className="h-14 w-20 shrink-0 overflow-hidden rounded-xl bg-stone-100">
                   <div className="h-full w-full bg-linear-to-br from-stone-100 to-stone-200" />
                 </div>
 
-                {/* 본문 */}
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0 flex items-center gap-2">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getRentalOffers } from "../requests/offerRegistration-api";
 import Loading from "../modal/Loading";
+import { useNavigate } from "react-router";
 
 import OfferBook from "../pages/OfferBook";
 
@@ -9,6 +10,8 @@ export default function HomePage() {
   const [total, setTotal] = useState(0);
   const [showLoading, setShowLoading] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (selectedOffer) return;
@@ -120,6 +123,7 @@ export default function HomePage() {
                         type="button"
                         className="flex-1 rounded-2xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-cyan-800 active:scale-[0.99]"
                         onClick={() => {
+                          navigate("/home/offer/book/" + o.idx);
                           console.log("예약하기", o);
                           setSelectedOffer(o);
                         }}

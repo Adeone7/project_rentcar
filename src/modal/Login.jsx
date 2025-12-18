@@ -65,7 +65,7 @@ export default function LoginModal({ setModal, setIsLogin }) {
         </div>
 
         {loginError && (
-          <p className="text-red-500 text-xs">
+          <p className="text-rose-500 text-xs">
             이메일 또는 비밀번호가 일치하지 않습니다.
           </p>
         )}

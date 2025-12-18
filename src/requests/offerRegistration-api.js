@@ -13,16 +13,30 @@ function getRentalOffers() {
   });
 }
 
+function getRentalOfferByOfferId(token, offerId) {
+  return fetch(server + "/rental-offer/" + offerId, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error("매물 조회 실패");
+      return res.json();
+    })
+    .catch((error) => {
+      console.error("Error fetching rental offer by offerId:", error);
+      throw error;
+    });
+}
+
 /* 자동차 예약하기  */
-function bookRentalOffer({ idx, accountId, startDate, endDate }) {
-  return fetch(`${server}/home/offer/${idx}/book`, {
+function bookRentalOffer(token, payload) {
+  return fetch(server + "/reservation", {
     method: "POST",
-    headers: defaultHeader,
-    body: JSON.stringify({
-      accountId,
-      startDate,
-      endDate,
-    }),
+    headers: {
+      ...defaultHeader,
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
   }).then((response) => {
     if (!response.ok) throw new Error("예약 정보를 불러오는데 실패했습니다.");
     return response.json();
@@ -125,3 +139,92 @@ export async function carsByQuery(token, query) {
 }
 
 export { getRentalOffers, bookRentalOffer };
+/* 차량 통계 */
+function getOfferSummary(corporation, modelName) {
+  return fetch(
+    `${server}/rental-offer/stats?corporation=${corporation}&modelName=${modelName}`,
+    {
+      method: "GET",
+      headers: defaultHeader,
+    }
+  ).then((response) => {
+    if (!response.ok)
+      throw new Error("차량 통계 정보를 불러오는데 실패했습니다.");
+    return response.json();
+  });
+}
+
+/* 매물 검색 조회 */
+function searchRentalOffersByKeyword(keyword) {
+  const word = new URLSearchParams({ keyword: String(keyword ?? "") });
+  return fetch(`${server}/rental_offer?${word.toString()}`, {
+    method: "GET",
+    headers: defaultHeader,
+  }).then((res) => {
+    if (!res.ok) throw new Error("매물 검색 조회 실패");
+    return res.json();
+  });
+}
+
+/* 예약 기록 */
+function getReservations(token) {
+  return fetch(server + "/reservation", {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  }).then((res) => {
+    if (!res.ok) throw new Error("예약 기록 조회 실패");
+    return res.json();
+  });
+}
+
+/* 예약 취소 */
+function cancelReservation({ rental_offer_idx, token }) {
+  return fetch(`${server}/reservation/${rental_offer_idx}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  }).then((res) => {
+    if (!res.ok) throw new Error("예약 취소 실패");
+    return res.json();
+  });
+}
+
+/* 리뷰 작성 */
+function createReservationReview({ rental_offer_idx, content, star_rating }) {
+  return fetch(`${server}/reservation?${rental_offer_idx}/review`, {
+    method: "POST",
+    headers: defaultHeader,
+    body: JSON.stringify({
+      rental_offer_idx,
+      content,
+      star_rating,
+    }),
+  }).then((res) => {
+    if (!res.ok) throw new Error("리뷰 작성 실패");
+    return res.json();
+  });
+}
+
+/* 리뷰 조회 */
+function getReviewByReservationIdx(rental_offer_idx) {
+  return fetch(`${server}/review/${rental_offer_idx}`, {
+    method: "GET",
+    headers: defaultHeader,
+  }).then((res) => {
+    if (!res.ok) throw new Error("리뷰 조회 실패");
+    return res.json();
+  });
+}
+
+export {
+  createCar,
+  createRentalOffer,
+  getRentalOffers,
+  getRentalOfferByOfferId,
+  bookRentalOffer,
+  getOfferSummary,
+  searchRentalOffersByKeyword,
+  getReservations,
+  cancelReservation,
+  createReservationReview,
+  getReviewByReservationIdx,
+};
