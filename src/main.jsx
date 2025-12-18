@@ -24,6 +24,10 @@ const router = createBrowserRouter([
     element: <DefaultLayout />,
     children: [
       {
+        path: "/",
+        element: <HomePage />, //메인 홈페이지
+      },
+      {
         path: "/home",
         element: <HomePage />, //메인 홈페이지
       },
