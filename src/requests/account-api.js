@@ -133,4 +133,21 @@ export async function registerRentalOffer(token, rentalOfferData, images) {
     return { success: false, message: error.message || "알 수 없는 오류 발생" }; // 에러 시 객체 형태로 반환
   }
 }
-export { createAccount, verifyEmailCode, loginAccount, availableCheck };
+
+// 자동차 차트
+function getRentalOfferChart() {
+  return fetch(server + "/car/chart", {
+    method: "GET",
+  }).then((response) => {
+    if (!response.ok) throw new Error("조회 실패");
+    return response.json();
+  });
+}
+
+export {
+  createAccount,
+  verifyEmailCode,
+  loginAccount,
+  availableCheck,
+  getRentalOfferChart,
+};
