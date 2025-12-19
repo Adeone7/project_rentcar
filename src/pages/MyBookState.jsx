@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useToken } from "../stores/account-store";
 import LoginModal from "../modal/Login";
+import ReviewModal from "../modal/Review";
 import {
   getReservations,
   cancelReservation,
@@ -51,6 +52,7 @@ export default function MyBookState() {
 
   const [modal, setModal] = useState("");
   const [tab, setTab] = useState("전체");
+  const [reservationIdxForReview, setReservationIdxForReview] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
@@ -68,6 +70,12 @@ export default function MyBookState() {
         onClick={(e) => e.stopPropagation()}
       >
         {modal === "Login" && <LoginModal setModal={setModal} />}
+        {modal === "Review" && reservationIdxForReview && (
+          <ReviewModal
+            setModal={setModal}
+            reservationIdx={reservationIdxForReview}
+          />
+        )}
       </div>
     </div>
   );
@@ -248,7 +256,7 @@ export default function MyBookState() {
                 <div className="aspect-16/10 w-full overflow-hidden rounded-2xl bg-stone-100">
                   {current.img ? (
                     <img
-                      src={current.img}
+                      src={`http://192.168.0.14:8080${current.img}`}
                       alt=""
                       className="h-full w-full object-cover"
                     />
@@ -324,7 +332,7 @@ export default function MyBookState() {
                 <div className="h-14 w-20 shrink-0 overflow-hidden rounded-xl bg-stone-100">
                   {b.img ? (
                     <img
-                      src={b.img}
+                      src={`http://192.168.0.14:8080${b.img}`}
                       alt=""
                       className="h-full w-full object-cover"
                     />
@@ -353,8 +361,9 @@ export default function MyBookState() {
                   </div>
 
                   {b.label === "예약중" && (
-                    <div className="mt-2 flex gap-2">
+                    <>
                       <button
+                        key={`detail-${b.reservationIdx}`}
                         className="rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-stone-700 hover:bg-stone-50"
                         onClick={() =>
                           navigate(`/home/offer/book/${b.rentalOfferIdx}`)
@@ -362,20 +371,47 @@ export default function MyBookState() {
                       >
                         상세
                       </button>
+
                       <button
+                        key={`rereserve-${b.reservationIdx}`}
                         disabled={cancelingId === b.reservationIdx}
                         className={`rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white transition ${
                           cancelingId === b.reservationIdx
                             ? "cursor-not-allowed bg-rose-200"
                             : "bg-rose-400 hover:bg-rose-500"
                         }`}
-                        onClick={() => onCancel(b)}
+                        onClick={() => alert("다시예약 연결 예정")}
                       >
-                        {cancelingId === b.reservationIdx
-                          ? "취소중..."
-                          : "예약취소"}
+                        재예약
                       </button>
-                    </div>
+                    </>
+                  )}
+
+                  {b.label === "이용완료" && !b.hasReview && (
+                    <button
+                      key={`review-write-${b.reservationIdx}`}
+                      onClick={() => {
+                        setReservationIdxForReview(b.reservationIdx);
+                        setModal("Review");
+                      }}
+                      className="rounded-lg border border-cyan-300 bg-cyan-50 px-2.5 py-1.5 text-[11px] font-semibold
+                      text-cyan-700 hover:bg-cyan-100"
+                    >
+                      리뷰작성
+                    </button>
+                  )}
+
+                  {b.label === "이용완료" && b.hasReview && (
+                    <button
+                      key={`review-view-${b.reservationIdx}`}
+                      onClick={() => {
+                        alert("이미 작성된 리뷰 보거나 수정하기 (구현 예정)");
+                      }}
+                      className="rounded-lg border-stone-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold
+                        texe-stone-700 hover:bg-stone-50"
+                    >
+                      리뷰 보기/수정
+                    </button>
                   )}
                 </div>
               </div>

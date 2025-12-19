@@ -93,7 +93,7 @@ export default function OfferBook() {
             </div>
             <button
               type="button"
-              className="mt-5 inline-flex items-center justify-center rounded-2xl bg-cyan-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-sm transition hover:-translate-y-[1px] hover:bg-cyan-700 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 active:translate-y-0"
+              className="mt-5 inline-flex items-center justify-center rounded-2xl bg-cyan-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-sm transition hover:-translate-y-px hover:bg-cyan-700 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 active:translate-y-0"
               onClick={() => navigate(-1)}
             >
               돌아가기
@@ -123,7 +123,7 @@ export default function OfferBook() {
 
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-2xl border border-stone-200/80 bg-white/80 px-4 py-2 text-sm font-extrabold text-stone-700 shadow-sm backdrop-blur transition hover:-translate-y-[1px] hover:bg-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 active:translate-y-0"
+            className="inline-flex items-center justify-center rounded-2xl border border-stone-200/80 bg-white/80 px-4 py-2 text-sm font-extrabold text-stone-700 shadow-sm backdrop-blur transition hover:-translate-y-px hover:bg-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 active:translate-y-0"
             onClick={() => navigate("/home")}
           >
             뒤로가기
@@ -327,7 +327,7 @@ export default function OfferBook() {
                 type="button"
                 onClick={onBook}
                 disabled={bookingLoading}
-                className="mt-2 inline-flex w-full items-center justify-center rounded-2xl bg-linear-to-r from-cyan-600 to-sky-500 px-4 py-3 text-sm font-black text-white shadow-md shadow-cyan-500/20 transition hover:-translate-y-[1px] hover:shadow-lg hover:shadow-cyan-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-2 inline-flex w-full items-center justify-center rounded-2xl bg-linear-to-r from-cyan-600 to-sky-500 px-4 py-3 text-sm font-black text-white shadow-md shadow-cyan-500/20 transition hover:-translate-y-px hover:shadow-lg hover:shadow-cyan-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {bookingLoading ? "예약 처리중..." : "예약하기"}
               </button>

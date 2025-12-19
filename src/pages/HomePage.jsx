@@ -102,10 +102,10 @@ export default function HomePage() {
                     <div className="mt-3 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <div className="grid h-8 w-8 place-items-center rounded-full bg-stone-100 text-xs font-bold text-stone-600">
-                          {(o?.nickName ?? "").slice(0, 1)}
+                          {(o?.nickname ?? "").slice(0, 1)}
                         </div>
                         <div className="text-sm font-semibold text-stone-700">
-                          {o?.nickName ? `${o.nickName}님` : "판매자 정보 없음"}
+                          {o?.nickname ? `${o.nickname}` : "판매자 정보 없음"}
                         </div>
                       </div>
                     </div>

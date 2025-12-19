@@ -1,4 +1,4 @@
-const server = "http://192.168.0.92:8080";
+const server = "http://192.168.0.14:8080";
 
 const defaultHeader = {
   "Content-Type": "application/json",
