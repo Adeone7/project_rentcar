@@ -3,17 +3,14 @@ import "./index.css";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter } from "react-router";
 import { RouterProvider } from "react-router/dom";
-
 import HomePage from "./pages/HomePage";
-
 import SignUp from "./modal/SignUp";
-
 import OfferBook from "./pages/OfferBook";
 import OfferRegistration from "./pages/OfferRegistration";
 import OfferChart from "./pages/OfferChart";
 import MyBookState from "./pages/MyBookState";
 import DefaultLayout from "./layout/DefaultLayout";
-import SearchRegistration from "./pages/SearchRegistration";
+import SearchRegistration from "./compornent/Calandar";
 import DefaultLayout2 from "./layout/DefaultLayout2";
 import SearchRegistrationResults from "./pages/SearchRegistrationResults";
 import LoadingPage from "./pages/LoadingPage";
@@ -30,6 +27,7 @@ const router = createBrowserRouter([
         path: "/home",
         element: <HomePage />, //메인 홈페이지
       },
+
       {
         path: "/home/offer/search",
         element: <SearchRegistration />, //예약 검색 달력

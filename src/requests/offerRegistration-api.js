@@ -110,7 +110,7 @@ async function carsByQuery(token, query) {
 
     return await response.json();
   } catch (error) {
-    console.error("자동차 검색 API 호출 중 오류 발생:", error);
+    console.error("자동차 검색 오류 발생:", error);
     return {
       success: false,
       message: error.message || "알 수 없는 오류 발생",
@@ -135,8 +135,7 @@ function getOfferSummary(corporation, modelName) {
 
 /* 매물 검색 조회(키워드)*/
 function searchRentalOffersByKeyword(keyword) {
-  const word = new URLSearchParams({ keyword: String(keyword ?? "") });
-  return fetch(`${server}/rental_offer?${word.toString()}`, {
+  return fetch(`${server}/rental-offer?keyword=${keyword}`, {
     method: "GET",
     headers: defaultHeader,
   }).then((res) => {
