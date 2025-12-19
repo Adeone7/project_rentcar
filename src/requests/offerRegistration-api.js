@@ -4,8 +4,10 @@ const defaultHeader = {
   "Content-Type": "application/json",
 };
 
+/* 매물 전체 조회 */
+
 function getRentalOffers() {
-  return fetch(server + "/rental-offer", {
+  return fetch(`${server}/rental-offer`, {
     method: "GET",
   }).then((res) => {
     if (!res.ok) throw new Error("매물 조회 실패");
@@ -13,67 +15,51 @@ function getRentalOffers() {
   });
 }
 
+/*  매물 단건 조회(offerId)*/
 function getRentalOfferByOfferId(token, offerId) {
-  return fetch(server + "/rental-offer/" + offerId, {
+  return fetch(`${server}/rental-offer/${offerId}`, {
     method: "GET",
-    headers: { Authorization: `Bearer ${token}` },
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error("매물 조회 실패");
-      return res.json();
-    })
-    .catch((error) => {
-      console.error("Error fetching rental offer by offerId:", error);
-      throw error;
-    });
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  }).then((res) => {
+    if (!res.ok) throw new Error("매물 조회 실패");
+    return res.json();
+  });
 }
 
-/* 자동차 예약하기  */
+/*  예약하기(POST) */
 function bookRentalOffer(token, payload) {
-  return fetch(server + "/reservation", {
+  return fetch(`${server}/reservation`, {
     method: "POST",
     headers: {
       ...defaultHeader,
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
-  }).then((response) => {
-    if (!response.ok) throw new Error("예약 정보를 불러오는데 실패했습니다.");
-    return response.json();
+  }).then((res) => {
+    if (!res.ok) throw new Error("예약 정보를 불러오는데 실패했습니다.");
+    return res.json();
   });
 }
 
-// 렌탈 오퍼 등록 API 호출 함수 (CarRegistrationPage 컴포넌트에서 사용)
-export async function registerRentalOffer(token, rentalOfferData, images) {
+/*렌탈 매물 등록(FormData + 이미지)*/
+async function registerRentalOffer(token, rentalOfferData, images) {
   try {
     const formData = new FormData();
 
     formData.append("carIdx", String(rentalOfferData.carIdx));
     formData.append("rentalPrice", String(rentalOfferData.rentalPrice));
-    formData.append("description", rentalOfferData.description ?? ""); // Nullish Coalescing
+    formData.append("description", rentalOfferData.description ?? "");
 
     if (images && images.length > 0) {
       images.forEach((file) => {
-        formData.append("img", file); // 백엔드 DTO의 'img' 필드와 일치
+        formData.append("img", file);
       });
     }
-
-    console.log(
-      ">>> [API Service] registerRentalOffer (매물 등록): Sending FormData Content <<<"
-    );
-    for (let pair of formData.entries()) {
-      if (pair[0] === "img") {
-        console.log(`${pair[0]}:`, pair[1].name);
-      } else {
-        console.log(`${pair[0]}:`, pair[1]);
-      }
-    }
-    console.log("----------------------------------------------------------");
 
     const response = await fetch(`${server}/rental-offer`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`, // 토큰 헤더!
+        Authorization: `Bearer ${token}`,
       },
       body: formData,
     });
@@ -82,7 +68,7 @@ export async function registerRentalOffer(token, rentalOfferData, images) {
       let errorResponse;
       try {
         errorResponse = await response.json();
-      } catch (jsonError) {
+      } catch {
         errorResponse = { message: `서버 오류 (HTTP ${response.status})` };
       }
       throw new Error(
@@ -92,44 +78,39 @@ export async function registerRentalOffer(token, rentalOfferData, images) {
     }
 
     const data = await response.json();
-    return { success: true, data: data }; // 오타 없이 success!
+    return { success: true, data };
   } catch (error) {
     console.error("[API Service] 렌탈 매물 등록 중 오류 발생:", error);
     return { success: false, message: error.message || "알 수 없는 오류 발생" };
   }
 }
 
-// -----------------------------------------------------------------------------
-// 🚨🚨🚨 2. 차량 검색 API 함수 (GET 방식) 🚨🚨🚨
-// 이 함수가 검색창 드롭다운을 위한 함수! FormData와는 상관없음!
-// -----------------------------------------------------------------------------
-export async function carsByQuery(token, query) {
-  if (!query) {
-    return { success: true, carList: [] };
-  }
+/* 차량 검색(query로 검색) */
+async function carsByQuery(token, query) {
+  if (!query) return { success: true, carList: [] };
 
   try {
     const response = await fetch(
       `${server}/car?query=${encodeURIComponent(query)}`,
       {
+        method: "GET",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // 검색도 인증이 필요한 경우 토큰 사용!
+          ...defaultHeader,
+          Authorization: `Bearer ${token}`,
         },
       }
     );
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({
-        message: `서버 에러 발생`,
+        message: "서버 에러 발생",
       }));
-      throw new Error(
-        errorData.message || `HTTp error! status: ${response.status}`
-      );
+      throw new Error(errorData.message || `HTTP error: ${response.status}`);
     }
-    const data = await response.json();
-    return data;
+
+    return await response.json();
   } catch (error) {
-    console.error("자동차 검색 API 호출 중 오류 발생: ", error);
+    console.error("자동차 검색 API 호출 중 오류 발생:", error);
     return {
       success: false,
       message: error.message || "알 수 없는 오류 발생",
@@ -138,23 +119,21 @@ export async function carsByQuery(token, query) {
   }
 }
 
-export { getRentalOffers, bookRentalOffer };
-/* 차량 통계 */
+/* 차량 통계 조회(제조사/모델명) */
 function getOfferSummary(corporation, modelName) {
-  return fetch(
-    `${server}/rental-offer/stats?corporation=${corporation}&modelName=${modelName}`,
-    {
-      method: "GET",
-      headers: defaultHeader,
-    }
-  ).then((response) => {
-    if (!response.ok)
-      throw new Error("차량 통계 정보를 불러오는데 실패했습니다.");
-    return response.json();
+  const c = encodeURIComponent(corporation ?? "");
+  const m = encodeURIComponent(modelName ?? "");
+
+  return fetch(`${server}/rental-offer/stats?corporation=${c}&modelName=${m}`, {
+    method: "GET",
+    headers: defaultHeader,
+  }).then((res) => {
+    if (!res.ok) throw new Error("차량 통계 정보를 불러오는데 실패했습니다.");
+    return res.json();
   });
 }
 
-/* 매물 검색 조회 */
+/* 매물 검색 조회(키워드)*/
 function searchRentalOffersByKeyword(keyword) {
   const word = new URLSearchParams({ keyword: String(keyword ?? "") });
   return fetch(`${server}/rental_offer?${word.toString()}`, {
@@ -166,9 +145,9 @@ function searchRentalOffersByKeyword(keyword) {
   });
 }
 
-/* 예약 기록 */
+/* 내 예약 기록 조회 */
 function getReservations(token) {
-  return fetch(server + "/reservation", {
+  return fetch(`${server}/reservation`, {
     method: "GET",
     headers: { Authorization: `Bearer ${token}` },
   }).then((res) => {
@@ -177,7 +156,7 @@ function getReservations(token) {
   });
 }
 
-/* 예약 취소 */
+/* 예약 취소(DELETE) */
 function cancelReservation({ reservationIdx, token }) {
   return fetch(`${server}/reservation/${reservationIdx}`, {
     method: "DELETE",
@@ -188,11 +167,19 @@ function cancelReservation({ reservationIdx, token }) {
   });
 }
 
-/* 리뷰 작성 */
-function createReservationReview({ rental_offer_idx, content, star_rating }) {
-  return fetch(`${server}/reservation?${rental_offer_idx}/review`, {
+/* 리뷰 작성(예약/매물 기준)*/
+function createReservationReview({
+  rental_offer_idx,
+  content,
+  star_rating,
+  token,
+}) {
+  return fetch(`${server}/reservation/${rental_offer_idx}/review`, {
     method: "POST",
-    headers: defaultHeader,
+    headers: {
+      ...defaultHeader,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({
       rental_offer_idx,
       content,
@@ -204,7 +191,7 @@ function createReservationReview({ rental_offer_idx, content, star_rating }) {
   });
 }
 
-/* 리뷰 조회 */
+/* 리뷰 조회(매물 idx 기준)*/
 function getReviewByReservationIdx(rental_offer_idx) {
   return fetch(`${server}/review/${rental_offer_idx}`, {
     method: "GET",
@@ -216,11 +203,11 @@ function getReviewByReservationIdx(rental_offer_idx) {
 }
 
 export {
-  createCar,
-  createRentalOffer,
   getRentalOffers,
   getRentalOfferByOfferId,
   bookRentalOffer,
+  registerRentalOffer,
+  carsByQuery,
   getOfferSummary,
   searchRentalOffersByKeyword,
   getReservations,
