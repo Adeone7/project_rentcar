@@ -60,26 +60,6 @@ export default function MyBookState() {
 
   const [cancelingId, setCancelingId] = useState(null);
 
-  const modalUI = modal && (
-    <div
-      className="fixed inset-0 z-9999 flex items-center justify-center bg-stone-900/30 px-4"
-      onClick={() => setModal("")}
-    >
-      <div
-        className="w-full max-w-[520px]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {modal === "Login" && <LoginModal setModal={setModal} />}
-        {modal === "Review" && reservationIdxForReview && (
-          <ReviewModal
-            setModal={setModal}
-            reservationIdx={reservationIdxForReview}
-          />
-        )}
-      </div>
-    </div>
-  );
-
   const load = async () => {
     if (!token) return;
     setLoading(true);
@@ -94,6 +74,27 @@ export default function MyBookState() {
       setLoading(false);
     }
   };
+
+  const modalUI = modal && (
+    <div
+      className="fixed inset-0 z-9999 flex items-center justify-center bg-stone-900/30 px-4"
+      onClick={() => setModal("")}
+    >
+      <div
+        className="w-full max-w-[520px]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {modal === "Login" && <LoginModal setModal={setModal} />}
+        {modal === "Review" && reservationIdxForReview && (
+          <ReviewModal
+            setModal={setModal}
+            reservationIdx={reservationIdxForReview}
+            reloadReservations={load} // ✅ 부모 load() 전달
+          />
+        )}
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     load();
@@ -388,30 +389,10 @@ export default function MyBookState() {
                   )}
 
                   {b.label === "이용완료" && !b.hasReview && (
-                    <button
-                      key={`review-write-${b.reservationIdx}`}
-                      onClick={() => {
-                        setReservationIdxForReview(b.reservationIdx);
-                        setModal("Review");
-                      }}
-                      className="rounded-lg border border-cyan-300 bg-cyan-50 px-2.5 py-1.5 text-[11px] font-semibold
-                      text-cyan-700 hover:bg-cyan-100"
-                    >
-                      리뷰작성
-                    </button>
+                    <button>리뷰작성</button>
                   )}
-
                   {b.label === "이용완료" && b.hasReview && (
-                    <button
-                      key={`review-view-${b.reservationIdx}`}
-                      onClick={() => {
-                        alert("이미 작성된 리뷰 보거나 수정하기 (구현 예정)");
-                      }}
-                      className="rounded-lg border-stone-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold
-                        texe-stone-700 hover:bg-stone-50"
-                    >
-                      리뷰 보기/수정
-                    </button>
+                    <button>내 리뷰보기</button>
                   )}
                 </div>
               </div>

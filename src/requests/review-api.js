@@ -24,4 +24,3 @@ export async function createReview(token, reservationIdx, reviewData) {
         return { success: false, message: error.message || "알 수 없는 오류 발생"}
     }
 }
-
