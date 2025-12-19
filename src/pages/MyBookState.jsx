@@ -248,7 +248,7 @@ export default function MyBookState() {
                 <div className="aspect-16/10 w-full overflow-hidden rounded-2xl bg-stone-100">
                   {current.img ? (
                     <img
-                      src={current.img}
+                      src={"http://192.168.0.14:8080" + current.img}
                       alt=""
                       className="h-full w-full object-cover"
                     />
@@ -324,7 +324,7 @@ export default function MyBookState() {
                 <div className="h-14 w-20 shrink-0 overflow-hidden rounded-xl bg-stone-100">
                   {b.img ? (
                     <img
-                      src={b.img}
+                      src={"http://192.168.0.14:8080" + b.img}
                       alt=""
                       className="h-full w-full object-cover"
                     />
