@@ -25,7 +25,7 @@ export default function LoginModal({ setModal, setIsLogin }) {
 
     loginAccount(id, pw).then((res) => {
       if (res.success) {
-        setAccount(res.user);
+        setAccount(res.account);
         setToken(res.auth);
         if (typeof setIsLogin === "function") setIsLogin(true);
         setModal(null);
