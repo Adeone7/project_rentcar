@@ -1,6 +1,6 @@
 import { useState } from "react";
 import CarSelector from "../compornent/CarSelector";
-import { registerRentalOffer } from "../requests/offerRegistration-api";
+import { registerRentalOffer } from "../requests/rentalOffer-api";
 import { useToken } from "../stores/account-store";
 import { useNavigate } from "react-router";
 

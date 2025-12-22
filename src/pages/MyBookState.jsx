@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useToken } from "../stores/account-store";
 import LoginModal from "../modal/Login";
+import ReviewModal from "../modal/Review";
 import {
   getReservations,
   cancelReservation,
@@ -58,6 +59,7 @@ export default function MyBookState() {
 
   const [modal, setModal] = useState("");
   const [tab, setTab] = useState("전체");
+  const [reservationIdxForReview, setReservationIdxForReview] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
@@ -98,6 +100,27 @@ export default function MyBookState() {
       setLoading(false);
     }
   };
+
+  const modalUI = modal && (
+    <div
+      className="fixed inset-0 z-9999 flex items-center justify-center bg-stone-900/30 px-4"
+      onClick={() => setModal("")}
+    >
+      <div
+        className="w-full max-w-[520px]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {modal === "Login" && <LoginModal setModal={setModal} />}
+        {modal === "Review" && reservationIdxForReview && (
+          <ReviewModal
+            setModal={setModal}
+            reservationIdx={reservationIdxForReview}
+            reloadReservations={load} // ✅ 부모 load() 전달
+          />
+        )}
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     load();
@@ -287,25 +310,31 @@ export default function MyBookState() {
           </div>
         )}
 
-        {currentReservations.length > 0 && (
-          <div className="mt-4 space-y-3">
-            {currentReservations.map((cur) => (
-              <div
-                key={cur.reservationIdx}
-                className="rounded-2xl border border-cyan-100 bg-cyan-50/40 p-4"
-              >
-                <div className="flex flex-col gap-4 sm:flex-row">
-                  <div className="sm:w-[280px]">
-                    <div className="aspect-16/10 w-full overflow-hidden rounded-2xl bg-stone-100">
-                      {cur.img ? (
-                        <img
-                          src={"http://192.168.0.14:8080" + cur.img}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="h-full w-full bg-linear-to-br from-stone-100 to-stone-200" />
-                      )}
+        {!!current && (
+          <div className="mt-4 rounded-2xl border border-cyan-100 bg-cyan-50/40 p-4">
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <div className="sm:w-[280px]">
+                <div className="aspect-16/10 w-full overflow-hidden rounded-2xl bg-stone-100">
+                  {current.img ? (
+                    <img
+                      src={`http://192.168.0.14:8080${current.img}`}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-linear-to-br from-stone-100 to-stone-200" />
+                  )}
+                </div>
+                <div className="mt-2">
+                  <StatusPill label={current.label} />
+                </div>
+              </div>
+
+              <div className="flex-1">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-base font-extrabold text-stone-900">
+                      {current.carName}
                     </div>
                     <div className="mt-2">
                       <StatusPill label={cur.label} />
@@ -381,7 +410,7 @@ export default function MyBookState() {
                 <div className="h-14 w-20 shrink-0 overflow-hidden rounded-xl bg-stone-100">
                   {b.img ? (
                     <img
-                      src={"http://192.168.0.14:8080" + b.img}
+                      src={`http://192.168.0.14:8080${b.img}`}
                       alt=""
                       className="h-full w-full object-cover"
                     />
@@ -409,9 +438,10 @@ export default function MyBookState() {
                     </div>
                   </div>
 
-                  {b.label === "이용중" && (
-                    <div className="mt-2 flex gap-2">
+                  {b.label === "예약중" && (
+                    <>
                       <button
+                        key={`detail-${b.reservationIdx}`}
                         className="rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-stone-700 hover:bg-stone-50"
                         onClick={() =>
                           navigate(`/home/offer/book/${b.rentalOfferIdx}`)
@@ -419,20 +449,27 @@ export default function MyBookState() {
                       >
                         상세
                       </button>
+
                       <button
-                        disabled={returningId === b.reservationIdx}
+                        key={`rereserve-${b.reservationIdx}`}
+                        disabled={cancelingId === b.reservationIdx}
                         className={`rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white transition ${
                           returningId === b.reservationIdx
                             ? "cursor-not-allowed bg-stone-200"
                             : "bg-stone-700 hover:bg-stone-800"
                         }`}
-                        onClick={() => onReturn(b)}
+                        onClick={() => alert("다시예약 연결 예정")}
                       >
-                        {returningId === b.reservationIdx
-                          ? "처리중..."
-                          : "대여반납"}
+                        재예약
                       </button>
-                    </div>
+                    </>
+                  )}
+
+                  {b.label === "이용완료" && !b.hasReview && (
+                    <button>리뷰작성</button>
+                  )}
+                  {b.label === "이용완료" && b.hasReview && (
+                    <button>내 리뷰보기</button>
                   )}
                 </div>
               </div>
