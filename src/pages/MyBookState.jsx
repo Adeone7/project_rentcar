@@ -114,6 +114,7 @@ export default function MyBookState() {
       img: r.rentalOffer?.img || "",
       label: toLabel(r.reservationStatus),
       price: won(r.paymentAmount),
+      hasReview: r.hasReview,
     };
   });
 
@@ -389,10 +390,23 @@ export default function MyBookState() {
                   )}
 
                   {b.label === "이용완료" && !b.hasReview && (
-                    <button>리뷰작성</button>
+                    <button
+                      className="mt-2 rounded-lg bg-cyan-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-cyan-700"
+                      onClick={() => {
+                        setReservationIdxForReview(b.reservationIdx);
+                        setModal("Review");
+                      }}
+                    >
+                      리뷰작성
+                    </button>
                   )}
                   {b.label === "이용완료" && b.hasReview && (
-                    <button>내 리뷰보기</button>
+                    <button
+                      className="mt-2 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-[11px] font-semibold text-stone-700 hover:bg-stone-50"
+                      onClick={() => alert("리뷰 상세 보기 연결 예정")}
+                    >
+                      내 리뷰보기
+                    </button>
                   )}
                 </div>
               </div>
