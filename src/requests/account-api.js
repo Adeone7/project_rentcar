@@ -134,9 +134,19 @@ export async function registerRentalOffer(token, rentalOfferData, images) {
   }
 }
 
-// 자동차 차트
+// 자동차 차트 전체 조회
 function getRentalOfferChart() {
   return fetch(server + "/car/chart", {
+    method: "GET",
+  }).then((response) => {
+    if (!response.ok) throw new Error("조회 실패");
+    return response.json();
+  });
+}
+
+// 자동차 차트 월별 조회
+function getRentalOfferMonthChart(month) {
+  return fetch(server + "/car/month/chart?month=" + month, {
     method: "GET",
   }).then((response) => {
     if (!response.ok) throw new Error("조회 실패");
@@ -150,4 +160,5 @@ export {
   loginAccount,
   availableCheck,
   getRentalOfferChart,
+  getRentalOfferMonthChart,
 };
