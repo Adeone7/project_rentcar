@@ -72,20 +72,6 @@ export default function MyBookState() {
 
   const historyRef = useRef(null);
 
-  const modalUI = modal && (
-    <div
-      className="fixed inset-0 z-9999 flex items-center justify-center bg-stone-900/30 px-4"
-      onClick={() => setModal("")}
-    >
-      <div
-        className="w-full max-w-[520px]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {modal === "Login" && <LoginModal setModal={setModal} />}
-      </div>
-    </div>
-  );
-
   const load = async () => {
     if (!token) return;
     setLoading(true);
@@ -389,7 +375,7 @@ export default function MyBookState() {
                   </div>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         )}
       </div>
