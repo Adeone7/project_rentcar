@@ -167,22 +167,18 @@ function cancelReservation({ reservationIdx, token }) {
 }
 
 /* 리뷰 작성(예약/매물 기준)*/
-function createReservationReview({
-  rental_offer_idx,
-  content,
-  star_rating,
-  token,
-}) {
-  return fetch(`${server}/reservation/${rental_offer_idx}/review`, {
+function createReservationReview(token, payload) {
+  const { reservationIdx, content, starRating } = payload;
+  return fetch(`${server}/reservation/${reservationIdx}/review`, {
     method: "POST",
     headers: {
       ...defaultHeader,
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({
-      rental_offer_idx,
+      reservationIdx,
       content,
-      star_rating,
+      starRating,
     }),
   }).then((res) => {
     if (!res.ok) throw new Error("리뷰 작성 실패");
