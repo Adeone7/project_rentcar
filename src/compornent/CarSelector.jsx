@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
-import { carsByQuery } from "../requests/account-api";
+
 import { useToken } from "../stores/account-store";
+import { carsByQuery } from "../requests/offerRegistration-api";
 
 export default function CarSelector({ onCarSelected }) {
   const [searchTerm, setSearchTerm] = useState("");

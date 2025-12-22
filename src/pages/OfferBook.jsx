@@ -27,8 +27,17 @@ export default function OfferBook() {
   const [modal, setModal] = useState(null);
   const [isLogin, setIsLogin] = useState(false);
 
+  const [imgIdx, setImgIdx] = useState(0);
+
+  const SERVER = "http://192.168.0.14:8080";
+  const imageSrc = (it) => {
+    const p = it?.img ?? it?.imagePath ?? it?.path ?? it?.url ?? "";
+    if (!p) return "";
+    if (/^https?:\/\//i.test(p)) return p;
+    return SERVER + p;
+  };
+
   useEffect(() => {
-    console.log(!!token, !!account, !!offerId);
     if (token && account && offerId) {
       getRentalOfferByOfferId(token, offerId).then((json) => {
         setOffer(json.rentalOfferAddReview);
@@ -37,6 +46,25 @@ export default function OfferBook() {
       });
     }
   }, [token, account, offerId]);
+
+  useEffect(() => {
+    setImgIdx(0);
+  }, [offerImages?.length]);
+
+  const imgs = Array.isArray(offerImages) ? offerImages : [];
+  const hasImgs = imgs.length > 0;
+  const canSlide = imgs.length > 1;
+  const curImg = hasImgs ? imgs[Math.min(imgIdx, imgs.length - 1)] : null;
+
+  const prevImg = () => {
+    if (!canSlide) return;
+    setImgIdx((i) => (i - 1 + imgs.length) % imgs.length);
+  };
+
+  const nextImg = () => {
+    if (!canSlide) return;
+    setImgIdx((i) => (i + 1) % imgs.length);
+  };
 
   const onBook = async () => {
     setBookingErr("");
@@ -74,7 +102,6 @@ export default function OfferBook() {
       };
 
       await bookRentalOffer(token, payload);
-
       setBookingOk("예약이 완료되었습니다.");
     } catch (e) {
       setBookingErr("예약 요청에 실패했습니다.");
@@ -132,19 +159,73 @@ export default function OfferBook() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.2fr,0.8fr]">
           <div className="overflow-hidden rounded-3xl border border-stone-200/70 bg-white/80 shadow-[0_24px_70px_-45px_rgba(0,0,0,0.35)] backdrop-blur">
-            <div className="relative h-64 bg-linear-to-br from-stone-100 via-white to-cyan-50">
-              {offerImages?.[0] ? (
-                <img
-                  src={"http://192.168.0.14:8080" + offerImages[0].img}
-                  className="h-full w-full object-contain p-6"
-                  alt=""
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-sm font-semibold text-stone-400">
-                  이미지 없음
+            <div className="relative bg-linear-to-br from-stone-100 via-white to-cyan-50">
+              <div className="relative h-64">
+                {hasImgs ? (
+                  <img
+                    src={imageSrc(curImg)}
+                    className="h-full w-full object-contain p-6"
+                    alt=""
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-sm font-semibold text-stone-400">
+                    이미지 없음
+                  </div>
+                )}
+
+                {hasImgs && (
+                  <div className="absolute right-4 top-4 rounded-full bg-black/35 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur">
+                    {Math.min(imgIdx + 1, imgs.length)} / {imgs.length}
+                  </div>
+                )}
+
+                {canSlide && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={prevImg}
+                      aria-label="이전 이미지"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 rounded-2xl border border-white/20 bg-white/70 px-3 py-2 text-sm font-black text-stone-800 shadow-sm backdrop-blur transition hover:-translate-y-1/2 hover:bg-white hover:shadow-md active:translate-y-[-50%]"
+                    >
+                      &lt;
+                    </button>
+                    <button
+                      type="button"
+                      onClick={nextImg}
+                      aria-label="다음 이미지"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-2xl border border-white/20 bg-white/70 px-3 py-2 text-sm font-black text-stone-800 shadow-sm backdrop-blur transition hover:-translate-y-1/2 hover:bg-white hover:shadow-md active:translate-y-[-50%]"
+                    >
+                      &gt;
+                    </button>
+                  </>
+                )}
+
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-linear-to-t from-black/10 to-transparent" />
+              </div>
+
+              {hasImgs && (
+                <div className="flex gap-2 overflow-x-auto px-4 pb-4 pt-2">
+                  {imgs.map((it, i) => (
+                    <button
+                      key={it?.idx ?? it?.id ?? `${i}`}
+                      type="button"
+                      onClick={() => setImgIdx(i)}
+                      className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-2xl border bg-white/70 shadow-sm backdrop-blur transition ${
+                        i === imgIdx
+                          ? "border-cyan-300 ring-2 ring-cyan-500/30"
+                          : "border-stone-200/70 hover:border-stone-300"
+                      }`}
+                      aria-label={`이미지 ${i + 1} 보기`}
+                    >
+                      <img
+                        src={imageSrc(it)}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    </button>
+                  ))}
                 </div>
               )}
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-linear-to-t from-black/10 to-transparent" />
             </div>
 
             <div className="p-6">
