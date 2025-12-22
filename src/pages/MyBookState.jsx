@@ -93,7 +93,7 @@ export default function MyBookState() {
     setErr("");
     try {
       const json = await getReservations(token);
-      const next = json?.reservations ?? [];
+      const next = json?.reservationsWithReviews ?? [];
       setRows(next);
 
       setPinnedId((pid) => {
