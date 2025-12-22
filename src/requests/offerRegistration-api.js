@@ -1,4 +1,4 @@
-const server = "http://192.168.0.14:8080";
+const server = "http://192.168.0.92:8080";
 
 const defaultHeader = {
   "Content-Type": "application/json",
@@ -166,6 +166,27 @@ function cancelReservation({ reservationIdx, token }) {
   });
 }
 
+function returnReservation({
+  reservationIdx,
+  token,
+  reservationStatus = "이용완료",
+}) {
+  return fetch(`${server}/reservation/statusUpdate`, {
+    method: "PATCH",
+    headers: {
+      ...defaultHeader,
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      reservationIdx,
+      reservationStatus,
+    }),
+  }).then((res) => {
+    if (!res.ok) throw new Error("반납 처리 실패");
+    return res.json();
+  });
+}
+
 /* 리뷰 작성(예약/매물 기준)*/
 function createReservationReview(token, payload) {
   const { reservationIdx, content, starRating } = payload;
@@ -209,4 +230,5 @@ export {
   cancelReservation,
   createReservationReview,
   getReviewByReservationIdx,
+  returnReservation,
 };

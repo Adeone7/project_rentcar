@@ -1,6 +1,50 @@
-import { createReservationReview } from "../requests/offerRegistration-api";
+import { useMemo, useState } from "react";
 import { useToken } from "../stores/account-store";
-import { useState } from "react";
+import { createReview } from "../requests/review-api";
+
+function Star({ active }) {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      className={`h-6 w-6 ${active ? "text-sky-500" : "text-stone-300"}`}
+    >
+      <path
+        fill="currentColor"
+        d="M10 15.27l-5.18 3.05 1.4-5.98L1.6 8.27l6.06-.52L10 2.1l2.34 5.65 6.06.52-4.62 4.07 1.4 5.98z"
+      />
+    </svg>
+  );
+}
+
+function StarRating({ value, onChange, max = 5, disabled = false }) {
+  const [hover, setHover] = useState(0);
+  const shown = hover || value;
+
+  return (
+    <div className="flex items-center gap-1">
+      {Array.from({ length: max }).map((_, i) => {
+        const v = i + 1;
+        return (
+          <button
+            key={v}
+            type="button"
+            disabled={disabled}
+            onMouseEnter={() => setHover(v)}
+            onMouseLeave={() => setHover(0)}
+            onClick={() => onChange?.(v)}
+            className={`rounded-md p-0.5 ${
+              disabled ? "cursor-not-allowed opacity-60" : "hover:bg-stone-100"
+            }`}
+            aria-label={`${v}점`}
+            title={`${v}점`}
+          >
+            <Star active={shown >= v} />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function ReviewModal({
   setModal,
@@ -8,92 +52,127 @@ export default function ReviewModal({
   reloadReservations,
 }) {
   const { token } = useToken();
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  function StarRating({ rating, setRating }) {
-    const stars = [1, 2, 3, 4, 5];
+  const [starRating, setStarRating] = useState(5);
+  const [content, setContent] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+
+  const canSubmit = useMemo(() => {
     return (
-      <div className="flex justify-center mb-4">
-        {stars.map((star) => (
-          <svg
-            key={star}
-            onClick={() => setRating(star)}
-            className={`h-8 w-8 cursor-pointer ${
-              star <= rating ? "text-yellow-400" : "text-gray-300"
-            }`}
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.381-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-          </svg>
-        ))}
-      </div>
+      !!token &&
+      !!reservationIdx &&
+      starRating >= 1 &&
+      content.trim().length >= 5 &&
+      !loading
     );
-  }
+  }, [token, reservationIdx, starRating, content, loading]);
 
-  const handleSubmitReview = async () => {
-    setError("");
-    if (!token) return setError("로그인 상태를 확인할 수 없습니다.");
-    if (rating === 0) return setError("별점을 선택해주세요.");
-    if (comment.trim().length < 5)
-      return setError("리뷰 내용을 5자 이상 입력해주세요.");
+  const close = () => setModal?.("");
 
-    setIsLoading(true);
+  const onSubmit = async () => {
+    if (!token) return setErr("로그인이 필요합니다.");
+    if (!reservationIdx) return setErr("예약 정보를 찾을 수 없습니다.");
+    if (content.trim().length < 5)
+      return setErr("리뷰는 5자 이상 작성해주세요.");
+
     try {
-      const result = await createReservationReview(token, {
-        reservationIdx,
-        content: comment,
-        starRating: rating,
+      setLoading(true);
+      setErr("");
+
+      const res = await createReview(token, reservationIdx, {
+        content: content.trim(),
+        starRating,
       });
 
-      if (result.success) {
-        alert(result.message);
-        setModal(""); // 모달 닫기
-        // ✅ 부모 상태 갱신
-        reloadReservations?.();
-      } else {
-        setError(result.message || "리뷰 작성에 실패했습니다.");
-      }
-    } catch (err) {
-      setError("리뷰 작성 중 오류 발생: " + err.message);
+      if (!res?.success) throw new Error(res?.message || "리뷰 작성 실패");
+
+      await reloadReservations?.();
+      close();
+    } catch (e) {
+      setErr(e?.message || "리뷰 작성 실패");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="rounded-2xl border-stone-200 bg-white p-6 shadow-sm">
-      <div className="text-xl font-extrabold text-stone-900 text-center mb-5">
-        리뷰 작성하기
-      </div>
-      <div className="flex flex-col items-center gap-4">
-        <StarRating rating={rating} setRating={setRating} />
-        <textarea
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          placeholder="리뷰 내용을 작성해주세요 (최소 5자)"
-          className="w-full h-32 p-3 rounded-lg border border-stone-200 text-sm outline-none focus:border-cyan-400 resize-none"
-        />
-        {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
-        <div className="w-full flex justify-end gap-2 mt-4">
-          <button
-            onClick={() => setModal("")}
-            className="rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
-            disabled={isLoading}
-          >
-            취소
-          </button>
-          <button
-            onClick={handleSubmitReview}
-            className="rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-700"
-            disabled={isLoading}
-          >
-            {isLoading ? "작성중..." : "리뷰 제출"}
-          </button>
+    <div className="w-full rounded-2xl border border-stone-200 bg-white p-5 shadow-lg">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-[11px] font-semibold text-cyan-700">REVIEW</div>
+          <h2 className="mt-1 text-lg font-extrabold text-stone-900">
+            리뷰 작성
+          </h2>
         </div>
+
+        <button
+          onClick={close}
+          className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-bold text-stone-700 hover:bg-stone-50"
+        >
+          닫기
+        </button>
+      </div>
+
+      <div className="mt-5 rounded-2xl border border-stone-200 bg-stone-50 p-4">
+        <div className="text-xs font-bold text-stone-800">별점</div>
+
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <StarRating
+            value={starRating}
+            onChange={setStarRating}
+            disabled={loading}
+          />
+          <div className="shrink-0 rounded-full bg-white px-3 py-1 text-[11px] font-extrabold text-stone-900 ring-1 ring-stone-200">
+            {starRating} / 5
+          </div>
+        </div>
+
+        <div className="mt-4 text-xs font-bold text-stone-800">리뷰</div>
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="차량 상태, 청결, 응대, 인수/반납 경험 등을 자유롭게 작성해주세요. (5자 이상)"
+          className="mt-2 h-28 w-full resize-none rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-semibold text-stone-800 outline-none placeholder:text-stone-400 focus:border-sky-100 focus:ring-2 focus:ring-sky-100"
+        />
+        <div className="mt-2 flex items-center justify-between">
+          <div className="text-[11px] font-semibold text-stone-500">
+            {content.trim().length}자
+          </div>
+          <div className="text-[11px] font-semibold text-stone-400">
+            최소 5자이상
+          </div>
+        </div>
+      </div>
+
+      {err && (
+        <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-700">
+          {err}
+        </div>
+      )}
+
+      <div className="mt-5 flex gap-2">
+        <button
+          onClick={close}
+          disabled={loading}
+          className={`h-11 flex-1 rounded-2xl border border-stone-200 bg-white text-sm font-extrabold text-stone-700 hover:bg-stone-50 ${
+            loading ? "cursor-not-allowed opacity-60" : ""
+          }`}
+        >
+          취소
+        </button>
+
+        <button
+          onClick={onSubmit}
+          disabled={!canSubmit}
+          className={`h-11 flex-1 rounded-2xl text-sm font-extrabold text-white transition ${
+            canSubmit
+              ? "bg-sky-600 hover:bg-sky-700"
+              : "cursor-not-allowed bg-sky-200"
+          }`}
+        >
+          {loading ? "작성중..." : "리뷰 등록"}
+        </button>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { useToken } from "../stores/account-store";
 import LoginModal from "../modal/Login";
@@ -6,7 +6,10 @@ import ReviewModal from "../modal/Review";
 import {
   getReservations,
   cancelReservation,
+  returnReservation,
 } from "../requests/offerRegistration-api";
+
+const API = "http://192.168.0.14:8080";
 
 function StatusPill({ label }) {
   const tone =
@@ -36,14 +39,35 @@ function Stat({ label, value }) {
   );
 }
 
-const ymd = (s) => (s ? s.replaceAll("-", ".") : "—");
+const todayYmd = () => new Date().toLocaleDateString("sv-SE");
+const ymd = (s) => (s ? String(s).slice(0, 10).replaceAll("-", ".") : "—");
 const won = (n) => (typeof n === "number" ? `${n.toLocaleString()}원` : "—");
 
-const toLabel = (s) => {
-  const t = String(s || "");
-  if (t.includes("취소")) return "취소됨";
-  if (t.includes("완료")) return "이용완료";
-  return "예약중";
+const imgSrc = (p) => {
+  if (!p) return "";
+  const s = String(p);
+  if (s.startsWith("http://") || s.startsWith("https://")) return s;
+  if (s.startsWith("/")) return `${API}${s}`;
+  return `${API}/${s}`;
+};
+
+const deriveLabel = (r) => {
+  const raw = String(r?.reservationStatus || "");
+  const upper = raw.toUpperCase();
+
+  if (raw.includes("취소") || upper.includes("CANCEL")) return "취소됨";
+  if (
+    raw.includes("완료") ||
+    raw.includes("반납") ||
+    upper.includes("COMPLETE") ||
+    upper.includes("RETURN")
+  )
+    return "이용완료";
+
+  const t = todayYmd();
+  const s = String(r?.startDate || "").slice(0, 10);
+  if (s && t < s) return "예약중";
+  return "이용중";
 };
 
 export default function MyBookState() {
@@ -59,6 +83,9 @@ export default function MyBookState() {
   const [rows, setRows] = useState([]);
 
   const [cancelingId, setCancelingId] = useState(null);
+  const [returningId, setReturningId] = useState(null);
+
+  const [pinnedId, setPinnedId] = useState(null);
 
   const load = async () => {
     if (!token) return;
@@ -66,13 +93,126 @@ export default function MyBookState() {
     setErr("");
     try {
       const json = await getReservations(token);
-      setRows(json?.reservations ?? []);
+      const next = json?.reservations ?? [];
+      setRows(next);
+
+      setPinnedId((pid) => {
+        if (!pid) return null;
+        const updated = next.find((r) => r?.idx === pid);
+        if (!updated) return null;
+        if (updated?.hasReview) return null;
+        return pid;
+      });
     } catch (e) {
       setRows([]);
       setErr(e?.message || "예약 기록 조회 실패");
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    load();
+  }, [token]);
+
+  const items = useMemo(() => {
+    return (rows ?? []).map((r) => {
+      const car = r.rentalOffer?.car;
+      const carName = `${car?.corporation ?? ""} ${car?.modelName ?? ""}${
+        car?.modelYear ? ` (${car.modelYear})` : ""
+      }`.trim();
+
+      const img = r?.rentalOffer?.img ?? r?.rentalOffer?.imgUrl ?? "";
+
+      return {
+        reservationIdx: r.idx,
+        rentalOfferIdx: r.rentalOfferIdx,
+        carName: carName || "차량",
+        period: `${ymd(r.startDate)} ~ ${ymd(r.endDate)}`,
+        img,
+        label: deriveLabel(r),
+        price: won(r.paymentAmount),
+        hasReview: !!r.hasReview,
+      };
+    });
+  }, [rows]);
+
+  const stats = useMemo(() => {
+    const by = (k) => items.filter((x) => x.label === k).length;
+    return {
+      total: items.length,
+      reserved: by("예약중"),
+      using: by("이용중"),
+      canceled: by("취소됨"),
+      completed: by("이용완료"),
+    };
+  }, [items]);
+
+  const current =
+    (pinnedId ? items.find((x) => x.reservationIdx === pinnedId) : null) ??
+    items.find((x) => x.label === "이용중") ??
+    items.find((x) => x.label === "예약중") ??
+    null;
+
+  const historyBase = items.filter((x) =>
+    current ? x.reservationIdx !== current.reservationIdx : true
+  );
+  const history =
+    tab === "전체" ? historyBase : historyBase.filter((x) => x.label === tab);
+
+  const onCancel = async (row) => {
+    const id = row?.reservationIdx;
+    if (!id) return;
+    if (!window.confirm("예약을 취소할까요?")) return;
+
+    try {
+      setCancelingId(id);
+      await cancelReservation({ reservationIdx: id, token });
+      await load();
+    } catch (e) {
+      alert(e?.message || "예약 취소 실패");
+    } finally {
+      setCancelingId(null);
+    }
+  };
+
+  const onReturn = async (row) => {
+    const id = row?.reservationIdx;
+    if (!id) return;
+    if (!window.confirm("대여를 반납 처리할까요?")) return;
+
+    const prevRows = rows;
+
+    try {
+      setReturningId(id);
+      setPinnedId(id);
+
+      setRows((prev) =>
+        (prev ?? []).map((r) =>
+          r?.idx === id
+            ? { ...r, reservationStatus: "이용완료", hasReview: false }
+            : r
+        )
+      );
+
+      await returnReservation({
+        reservationIdx: id,
+        token,
+        reservationStatus: "이용완료",
+      });
+
+      await load();
+    } catch (e) {
+      setRows(prevRows);
+      alert(e?.message || "반납 처리 실패");
+    } finally {
+      setReturningId(null);
+    }
+  };
+
+  const openReview = (reservationIdx) => {
+    setReservationIdxForReview(reservationIdx);
+    setModal("Review");
   };
 
   const modalUI = modal && (
@@ -89,71 +229,76 @@ export default function MyBookState() {
           <ReviewModal
             setModal={setModal}
             reservationIdx={reservationIdxForReview}
-            reloadReservations={load} // ✅ 부모 load() 전달
+            reloadReservations={load}
           />
         )}
       </div>
     </div>
   );
 
-  useEffect(() => {
-    load();
-  }, [token]);
+  const ActionButtons = ({ row, compact = false }) => {
+    const baseBtn = compact
+      ? "rounded-lg px-2.5 py-1.5 text-[11px] font-semibold"
+      : "rounded-xl px-4 py-2 text-xs font-semibold";
 
-  const items = rows.map((r) => {
-    const car = r.rentalOffer?.car;
-    const carName = `${car?.corporation ?? ""} ${car?.modelName ?? ""}${
-      car?.modelYear ? ` (${car.modelYear})` : ""
-    }`.trim();
+    return (
+      <div
+        className={compact ? "mt-2 flex gap-2" : "mt-4 flex flex-wrap gap-2"}
+      >
+        <button
+          className={`${baseBtn} border border-stone-200 bg-white text-stone-700 hover:bg-stone-50`}
+          onClick={() => navigate(`/home/offer/book/${row.rentalOfferIdx}`)}
+        >
+          {compact ? "상세" : "상세보기"}
+        </button>
 
-    return {
-      reservationIdx: r.idx,
-      rentalOfferIdx: r.rentalOfferIdx,
-      carName: carName || "차량",
-      period: `${ymd(r.startDate)} ~ ${ymd(r.endDate)}`,
-      img: r.rentalOffer?.img || "",
-      label: toLabel(r.reservationStatus),
-      price: won(r.paymentAmount),
-      hasReview: r.hasReview,
-    };
-  });
+        {row.label === "예약중" && (
+          <button
+            disabled={cancelingId === row.reservationIdx}
+            className={`${baseBtn} text-white transition ${
+              cancelingId === row.reservationIdx
+                ? "cursor-not-allowed bg-rose-200"
+                : "bg-rose-400 hover:bg-rose-500"
+            }`}
+            onClick={() => onCancel(row)}
+          >
+            {cancelingId === row.reservationIdx ? "취소중..." : "예약취소"}
+          </button>
+        )}
 
-  const stats = {
-    total: items.length,
-    reserved: items.filter((x) => x.label === "예약중").length,
-    canceled: items.filter((x) => x.label === "취소됨").length,
-    completed: items.filter((x) => x.label === "이용완료").length,
-  };
+        {row.label === "이용중" && (
+          <button
+            disabled={returningId === row.reservationIdx}
+            className={`${baseBtn} text-white transition ${
+              returningId === row.reservationIdx
+                ? "cursor-not-allowed bg-stone-300"
+                : "bg-stone-700 hover:bg-stone-800"
+            }`}
+            onClick={() => onReturn(row)}
+          >
+            {returningId === row.reservationIdx ? "반납중..." : "대여반납"}
+          </button>
+        )}
 
-  const current = items.find((x) => x.label === "예약중") ?? null;
+        {row.label === "이용완료" && !row.hasReview && (
+          <button
+            className={`${baseBtn} bg-cyan-600 text-white hover:bg-cyan-700`}
+            onClick={() => openReview(row.reservationIdx)}
+          >
+            리뷰작성
+          </button>
+        )}
 
-  const historyBase = items.filter((x) =>
-    current ? x.reservationIdx !== current.reservationIdx : true
-  );
-
-  const history =
-    tab === "전체" ? historyBase : historyBase.filter((x) => x.label === tab);
-
-  const onCancel = async (row) => {
-    const id = row?.reservationIdx;
-    if (!id) return;
-
-    if (!window.confirm("예약을 취소할까요?")) return;
-
-    try {
-      setCancelingId(id);
-      await cancelReservation({ reservationIdx: id, token });
-      await load();
-    } catch (e) {
-      alert(e?.message || "예약 취소 실패");
-    } finally {
-      setCancelingId(null);
-    }
-  };
-
-  const goDetail = (row) => {
-    if (!row?.rentalOfferIdx) return;
-    navigate(`/home/offer/book?idx=${row.rentalOfferIdx}`);
+        {row.label === "이용완료" && row.hasReview && (
+          <button
+            className={`${baseBtn} border border-stone-300 bg-white text-stone-700 hover:bg-stone-50`}
+            onClick={() => alert("리뷰 상세 보기 연결 예정")}
+          >
+            내 리뷰보기
+          </button>
+        )}
+      </div>
+    );
   };
 
   if (!token) {
@@ -195,9 +340,9 @@ export default function MyBookState() {
           </div>
         </div>
 
-        <div className="w-full sm:w-[420px]">
-          <div className="flex gap-2">
-            {["전체", "예약중", "취소됨", "이용완료"].map((t) => (
+        <div className="w-full sm:w-[520px]">
+          <div className="flex flex-wrap gap-2">
+            {["전체", "예약중", "이용중", "취소됨", "이용완료"].map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -214,9 +359,10 @@ export default function MyBookState() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <Stat label="전체" value={stats.total} />
         <Stat label="예약중" value={stats.reserved} />
+        <Stat label="이용중" value={stats.using} />
         <Stat label="취소됨" value={stats.canceled} />
         <Stat label="이용완료" value={stats.completed} />
       </div>
@@ -258,7 +404,7 @@ export default function MyBookState() {
                 <div className="aspect-16/10 w-full overflow-hidden rounded-2xl bg-stone-100">
                   {current.img ? (
                     <img
-                      src={`http://192.168.0.14:8080${current.img}`}
+                      src={imgSrc(current.img)}
                       alt=""
                       className="h-full w-full object-cover"
                     />
@@ -292,29 +438,7 @@ export default function MyBookState() {
                   </div>
                 </div>
 
-                <div className="mt-4 flex gap-2">
-                  <button
-                    className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50"
-                    onClick={() =>
-                      navigate(`/home/offer/book/${current.rentalOfferIdx}`)
-                    }
-                  >
-                    상세보기
-                  </button>
-                  <button
-                    disabled={cancelingId === current.reservationIdx}
-                    className={`rounded-xl px-4 py-2 text-xs font-semibold text-white transition ${
-                      cancelingId === current.reservationIdx
-                        ? "cursor-not-allowed bg-rose-200"
-                        : "bg-rose-400 hover:bg-rose-500"
-                    }`}
-                    onClick={() => onCancel(current)}
-                  >
-                    {cancelingId === current.reservationIdx
-                      ? "취소중..."
-                      : "예약취소"}
-                  </button>
-                </div>
+                <ActionButtons row={current} />
               </div>
             </div>
           </div>
@@ -334,7 +458,7 @@ export default function MyBookState() {
                 <div className="h-14 w-20 shrink-0 overflow-hidden rounded-xl bg-stone-100">
                   {b.img ? (
                     <img
-                      src={`http://192.168.0.14:8080${b.img}`}
+                      src={imgSrc(b.img)}
                       alt=""
                       className="h-full w-full object-cover"
                     />
@@ -362,52 +486,7 @@ export default function MyBookState() {
                     </div>
                   </div>
 
-                  {b.label === "예약중" && (
-                    <>
-                      <button
-                        key={`detail-${b.reservationIdx}`}
-                        className="rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-stone-700 hover:bg-stone-50"
-                        onClick={() =>
-                          navigate(`/home/offer/book/${b.rentalOfferIdx}`)
-                        }
-                      >
-                        상세
-                      </button>
-
-                      <button
-                        key={`rereserve-${b.reservationIdx}`}
-                        disabled={cancelingId === b.reservationIdx}
-                        className={`rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white transition ${
-                          cancelingId === b.reservationIdx
-                            ? "cursor-not-allowed bg-rose-200"
-                            : "bg-rose-400 hover:bg-rose-500"
-                        }`}
-                        onClick={() => alert("다시예약 연결 예정")}
-                      >
-                        재예약
-                      </button>
-                    </>
-                  )}
-
-                  {b.label === "이용완료" && !b.hasReview && (
-                    <button
-                      className="mt-2 rounded-lg bg-cyan-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-cyan-700"
-                      onClick={() => {
-                        setReservationIdxForReview(b.reservationIdx);
-                        setModal("Review");
-                      }}
-                    >
-                      리뷰작성
-                    </button>
-                  )}
-                  {b.label === "이용완료" && b.hasReview && (
-                    <button
-                      className="mt-2 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-[11px] font-semibold text-stone-700 hover:bg-stone-50"
-                      onClick={() => alert("리뷰 상세 보기 연결 예정")}
-                    >
-                      내 리뷰보기
-                    </button>
-                  )}
+                  <ActionButtons row={b} compact />
                 </div>
               </div>
             </div>

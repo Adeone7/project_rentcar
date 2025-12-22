@@ -9,6 +9,8 @@ import SearchBar from "../compornent/SearchBar";
 
 const API = "http://192.168.0.14:8080";
 
+const MONTHLY_CHART_PATH = "/home/offer/chart";
+
 export default function HomePage() {
   const [baseOffers, setBaseOffers] = useState([]);
   const [offers, setOffers] = useState([]);
@@ -106,21 +108,30 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* ✅ 기존 검색 form 대신 SearchBar 적용 */}
-          <SearchBar
-            initialValue={keyword}
-            placeholder="차량 검색 (예: 아반떼, 현대...)"
-            loading={loading}
-            onSearch={(q) => {
-              setKeyword(q);
-              search(q);
-            }}
-            onReset={() => {
-              setKeyword("");
-              setErr("");
-              setOffers(baseOffers);
-            }}
-          />
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end ">
+            <button
+              type="button"
+              onClick={() => navigate(MONTHLY_CHART_PATH)}
+              className="h-11 rounded-2xl border border-sky-200 bg-sky-500 px-4 text-sm font-extrabold text-white shadow-sm transition hover:bg-sky-600 active:scale-[0.99]"
+            >
+              월별 차트 확인하기
+            </button>
+
+            <SearchBar
+              initialValue={keyword}
+              placeholder="차량 검색 (예: 아반떼, 현대...)"
+              loading={loading}
+              onSearch={(q) => {
+                setKeyword(q);
+                search(q);
+              }}
+              onReset={() => {
+                setKeyword("");
+                setErr("");
+                setOffers(baseOffers);
+              }}
+            />
+          </div>
         </div>
 
         {offers.length === 0 ? (
@@ -183,7 +194,6 @@ export default function HomePage() {
                       </div>
                     </div>
 
-                    {/* 판매자 */}
                     <div className="mt-3 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <div className="grid h-8 w-8 place-items-center rounded-full bg-stone-100 text-xs font-bold text-stone-600">
